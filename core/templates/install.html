@@ -1,0 +1,654 @@
+﻿{% extends 'base.html' %}
+  
+{% block content %}
+<head>
+    
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#00d2ff">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+</head>
+
+<style>
+.install-hero {
+background: linear-gradient(135deg, rgba(0, 210, 255, 0.1) 0%, rgba(58, 123, 213, 0.1) 100%);
+padding: 60px 20px;
+text-align: center;
+border-bottom: 1px solid rgba(255,255,255,0.05);
+position: relative;
+overflow: hidden;
+}
+  
+.install-hero::before {
+content: '';
+position: absolute;
+top: -50%;
+left: -50%;
+width: 200%;
+height: 200%;
+background: radial-gradient(circle, rgba(0, 210, 255, 0.05) 0%, transparent 70%);
+animation: rotate 20s linear infinite;
+}
+  
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+  
+.install-hero h1 {
+font-size: 3rem;
+font-weight: 900;
+margin-bottom: 15px;
+background: linear-gradient(135deg, #fff 0%, #00d2ff 100%);
+-webkit-background-clip: text;
+-webkit-text-fill-color: transparent;
+position: relative;
+z-index: 1;
+}
+  
+.install-hero p {
+font-size: 1.2rem;
+color: #aaa;
+max-width: 600px;
+margin: 0 auto;
+position: relative;
+z-index: 1;
+}
+  
+.install-section {
+padding: 50px 20px;
+max-width: 900px;
+margin: 0 auto;
+}
+  
+.platform-tabs {
+display: flex;
+justify-content: center;
+gap: 10px;
+margin-bottom: 30px;
+flex-wrap: wrap;
+}
+  
+.platform-tab {
+padding: 12px 25px;
+border-radius: 25px;
+background: rgba(30, 30, 30, 0.5);
+border: 1px solid rgba(255,255,255,0.05);
+color: #aaa;
+cursor: pointer;
+transition: all 0.3s ease;
+font-weight: 600;
+}
+  
+.platform-tab:hover {
+border-color: rgba(0, 210, 255, 0.3);
+color: #fff;
+}
+  
+.platform-tab.active {
+background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+color: #fff;
+border-color: transparent;
+}
+  
+.platform-content {
+display: none;
+}
+  
+.platform-content.active {
+display: block;
+animation: fadeIn 0.5s ease;
+}
+  
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+  
+.install-card {
+background: rgba(30, 30, 30, 0.5);
+border: 1px solid rgba(255,255,255,0.05);
+border-radius: 20px;
+padding: 30px;
+margin-bottom: 30px;
+}
+  
+.install-card h2 {
+color: var(--primary-color);
+font-size: 1.5rem;
+margin-bottom: 20px;
+display: flex;
+align-items: center;
+gap: 10px;
+}
+  
+.install-steps {
+counter-reset: step;
+}
+  
+.install-step {
+position: relative;
+padding-right: 50px;
+margin-bottom: 25px;
+padding-bottom: 25px;
+border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+  
+.install-step:last-child {
+border-bottom: none;
+margin-bottom: 0;
+padding-bottom: 0;
+}
+  
+.install-step::before {
+counter-increment: step;
+content: counter(step);
+position: absolute;
+right: 0;
+top: 0;
+width: 35px;
+height: 35px;
+background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+border-radius: 50%;
+display: flex;
+align-items: center;
+justify-content: center;
+font-weight: 700;
+color: #fff;
+font-size: 0.9rem;
+}
+  
+.install-step h3 {
+color: #fff;
+font-size: 1.1rem;
+margin-bottom: 8px;
+}
+  
+.install-step p {
+color: #aaa;
+line-height: 1.6;
+font-size: 0.95rem;
+}
+  
+.install-step .tip {
+background: rgba(0, 210, 255, 0.1);
+border-right: 3px solid #00d2ff;
+padding: 10px 15px;
+margin-top: 10px;
+border-radius: 0 10px 10px 0;
+font-size: 0.85rem;
+color: #00d2ff;
+}
+  
+.screenshot-box {
+background: rgba(0, 0, 0, 0.3);
+border-radius: 15px;
+padding: 20px;
+margin-top: 20px;
+text-align: center;
+}
+  
+.screenshot-placeholder {
+width: 100%;
+max-width: 300px;
+height: 200px;
+background: linear-gradient(135deg, rgba(0, 210, 255, 0.1), rgba(58, 123, 213, 0.1));
+border-radius: 15px;
+display: flex;
+align-items: center;
+justify-content: center;
+margin: 0 auto;
+border: 2px dashed rgba(0, 210, 255, 0.3);
+}
+  
+.screenshot-placeholder span {
+font-size: 3rem;
+opacity: 0.5;
+}
+  
+.quick-install-card {
+background: linear-gradient(135deg, rgba(0, 210, 255, 0.15) 0%, rgba(58, 123, 213, 0.15) 100%);
+border: 2px solid rgba(0, 210, 255, 0.4);
+text-align: center;
+padding: 40px;
+}
+  
+.quick-install-card h2 {
+justify-content: center;
+}
+  
+.quick-install-card p {
+color: #ccc;
+margin-bottom: 25px;
+line-height: 1.8;
+}
+  
+.pwa-install-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+padding: 18px 45px;
+border-radius: 50px;
+color: #fff;
+font-weight: 700;
+font-size: 1.1rem;
+transition: all 0.3s ease;
+background: linear-gradient(45deg, #00d2ff, #3a7bd5);
+border: none;
+cursor: pointer;
+box-shadow: 0 5px 25px rgba(0, 210, 255, 0.4);
+}
+  
+.pwa-install-btn:hover {
+transform: translateY(-3px) scale(1.02);
+box-shadow: 0 10px 35px rgba(0, 210, 255, 0.6);
+}
+  
+.pwa-install-btn .icon {
+font-size: 1.4rem;
+}
+
+.android-download-card {
+background: rgba(0, 210, 255, 0.08);
+border: 1px solid rgba(0, 210, 255, 0.25);
+border-radius: 15px;
+padding: 20px;
+margin-bottom: 25px;
+text-align: center;
+}
+
+.android-download-card h3 {
+color: #fff;
+font-size: 1.15rem;
+margin-bottom: 10px;
+}
+
+.android-download-card p {
+color: #ccc;
+line-height: 1.7;
+margin-bottom: 18px;
+}
+
+.apk-download-btn {
+display: inline-flex;
+align-items: center;
+justify-content: center;
+gap: 10px;
+padding: 15px 32px;
+border-radius: 999px;
+background: linear-gradient(45deg, #00c853, #00e676);
+color: #07140b;
+font-weight: 800;
+text-decoration: none;
+box-shadow: 0 5px 22px rgba(0, 200, 83, 0.35);
+transition: all 0.3s ease;
+}
+
+.apk-download-btn:hover {
+transform: translateY(-2px);
+box-shadow: 0 9px 30px rgba(0, 200, 83, 0.5);
+}
+  
+.troubleshoot-card {
+border: 1px solid rgba(255, 100, 100, 0.3);
+background: rgba(255, 0, 0, 0.05);
+}
+  
+.troubleshoot-card h2 {
+color: #ff6b6b;
+}
+  
+.troubleshoot-item {
+margin-bottom: 20px;
+padding-bottom: 20px;
+border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+  
+.troubleshoot-item:last-child {
+margin-bottom: 0;
+padding-bottom: 0;
+border-bottom: none;
+}
+  
+.troubleshoot-item h4 {
+color: #ff6b6b;
+margin-bottom: 10px;
+font-size: 1rem;
+}
+  
+.troubleshoot-item p {
+color: #aaa;
+font-size: 0.9rem;
+line-height: 1.6;
+}
+  
+.back-btn {
+display: inline-flex;
+align-items: center;
+gap: 8px;
+padding: 12px 25px;
+border-radius: 25px;
+background: rgba(30, 30, 30, 0.5);
+border: 1px solid rgba(255,255,255,0.1);
+color: #aaa;
+text-decoration: none;
+transition: all 0.3s ease;
+margin-bottom: 30px;
+}
+  
+.back-btn:hover {
+border-color: rgba(0, 210, 255, 0.3);
+color: #fff;
+}
+  
+@media (max-width: 768px) {
+.install-hero h1 {
+font-size: 2rem;
+    }
+.install-hero p {
+font-size: 1rem;
+    }
+.platform-tabs {
+gap: 8px;
+    }
+.platform-tab {
+padding: 10px 18px;
+font-size: 0.9rem;
+    }
+.install-card {
+padding: 20px;
+    }
+}
+</style>
+  
+<div class="install-hero">
+<h1>📥 نصب اپلیکیشن فان میگ</h1>
+<p>با نصب اپلیکیشن، همیشه یک قدم جلوتر از بقیه باشید!</p>
+</div>
+  
+<div class="install-section">
+  
+<a href="/about/" class="back-btn">
+        ← بازگشت به صفحه اصلی
+</a>
+  
+
+<div class="install-card quick-install-card">
+<h2><span>⚡</span> نصب سریع</h2>
+<p>
+            روی دکمه زیر بزنید تا اپلیکیشن به صورت خودکار نصب شود.
+            اگر دکمه کار نکرد، از راهنمای مراحل پایین استفاده کنید.
+</p>
+<button id="pwa-install-btn" class="pwa-install-btn">
+<span class="icon">📥</span>
+            نصب اپلیکیشن
+<span class="icon">📥</span>
+</button>
+</div>
+  
+
+<div class="platform-tabs">
+<div class="platform-tab active" data-platform="android">اندروید</div>
+<div class="platform-tab" data-platform="ios">آیفون (iOS)</div>
+<div class="platform-tab" data-platform="windows">ویندوز</div>
+<div class="platform-tab" data-platform="mac">مک</div>
+</div>
+  
+
+<div class="platform-content active" id="android">
+<div class="install-card">
+<h2><span>🤖</span> نصب روی اندروید</h2>
+<div class="android-download-card">
+<h3>دانلود مستقیم نسخه اندروید</h3>
+<p>
+اگر با گوشی اندرویدی وارد شده‌اید، روی دکمه زیر بزنید تا فایل نصب اپلیکیشن دانلود شود.
+بعد از دانلود، فایل را باز کنید و نصب را تایید کنید.
+</p>
+<a class="apk-download-btn" href="{% url 'download_android_apk' %}" download>
+<span>⬇️</span>
+دانلود اپلیکیشن اندروید
+</a>
+</div>
+<div class="install-steps">
+<div class="install-step">
+<h3>مرحله ۱: باز کردن در مرورگر کروم</h3>
+<p>این صفحه را در مرورگر گوگل کروم (Google Chrome) باز کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۲: لمس منوی مرورگر</h3>
+<p>روی سه نقطه (⋮) در بالای سمت راست مرورگر بزنید.</p>
+<div class="tip">💡 نکته: در برخی مرورگرها این آیکون در پایین صفحه قرار دارد</div>
+</div>
+<div class="install-step">
+<h3>مرحله ۳: انتخاب گزینه نصب</h3>
+<p>از منوی باز شده، گزینه <strong>"Add to Home Screen"</strong> یا <strong>"Install App"</strong> را انتخاب کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۴: تایید نصب</h3>
+<p>در پیام ظاهر شده، روی <strong>"Install"</strong> بزنید تا اپلیکیشن نصب شود.</p>
+</div>
+</div>
+<div class="screenshot-box">
+<div class="screenshot-placeholder">
+<span>📱</span>
+</div>
+<p style="color: #666; font-size: 0.85rem; margin-top: 10px;">تصویر راهنمای نصب در کروم</p>
+</div>
+</div>
+</div>
+  
+
+<div class="platform-content" id="ios">
+<div class="install-card">
+<h2><span>🍎</span> نصب روی آیفون (iOS)</h2>
+<div class="install-steps">
+<div class="install-step">
+<h3>مرحله ۱: باز کردن در مرورگر سافاری</h3>
+<p>این صفحه را حتماً در مرورگر <strong>Safari</strong> باز کنید (Safari در آیفون).</p>
+<div class="tip">⚠️ مهم: در مرورگرهای دیگر مثل کروم، گزینه نصب وجود ندارد!</div>
+</div>
+<div class="install-step">
+<h3>مرحله ۲: لمس دکمه اشتراک‌گذاری</h3>
+<p>روی دکمه <strong>Share</strong> (آیکون مربع با فلش رو به بالا) در پایین صفحه بزنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۳: انتخاب گزینه نصب</h3>
+<p>در منوی باز شده، به پایین اسکرول کنید و گزینه <strong>"Add to Home Screen"</strong> را انتخاب کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۴: تایید نصب</h3>
+<p>روی <strong>"Add"</strong> در گوشه بالا سمت راست بزنید.</p>
+</div>
+</div>
+<div class="screenshot-box">
+<div class="screenshot-placeholder">
+<span>📱</span>
+</div>
+<p style="color: #666; font-size: 0.85rem; margin-top: 10px;">تصویر راهنمای نصب در سافاری</p>
+</div>
+</div>
+</div>
+  
+
+<div class="platform-content" id="windows">
+<div class="install-card">
+<h2><span>🪟</span> نصب روی ویندوز</h2>
+<div class="install-steps">
+<div class="install-step">
+<h3>مرحله ۱: استفاده از مرورگر کروم یا اج</h3>
+<p>این صفحه را در مرورگر <strong>Google Chrome</strong> یا <strong>Microsoft Edge</strong> باز کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۲: مشاهده آیکون نصب</h3>
+<p>به نوار آدرس (بالای صفحه) نگاه کنید. باید آیکون نصب (📲 یا +) را ببینید.</p>
+<div class="tip">💡 نکته: اگر آیکون را نمی‌بینید، از منوی مرورگر گزینه "Install FUNMIG" را انتخاب کنید</div>
+</div>
+<div class="install-step">
+<h3>مرحله ۳: کلیک روی آیکون نصب</h3>
+<p>روی آیکون نصب در نوار آدرس کلیک کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۴: تایید نصب</h3>
+<p>در پیام ظاهر شده، روی <strong>"Install"</strong> کلیک کنید.</p>
+</div>
+</div>
+<div class="screenshot-box">
+<div class="screenshot-placeholder">
+<span>💻</span>
+</div>
+<p style="color: #666; font-size: 0.85rem; margin-top: 10px;">تصویر راهنمای نصب در ویندوز</p>
+</div>
+</div>
+</div>
+  
+
+<div class="platform-content" id="mac">
+<div class="install-card">
+<h2><span>🍎</span> نصب روی مک (macOS)</h2>
+<div class="install-steps">
+<div class="install-step">
+<h3>مرحله ۱: استفاده از مرورگر سافاری یا کروم</h3>
+<p>این صفحه را در مرورگر <strong>Safari</strong> یا <strong>Google Chrome</strong> باز کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۲: مشاهده آیکون نصب</h3>
+<p>به نوار آدرس (بالای صفحه) نگاه کنید. آیکون نصب (📲) را ببینید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۳: کلیک روی آیکون نصب</h3>
+<p>روی آیکون نصب در نوار آدرس کلیک کنید.</p>
+</div>
+<div class="install-step">
+<h3>مرحله ۴: تایید نصب</h3>
+<p>در پیام ظاهر شده، روی <strong>"Install"</strong> کلیک کنید.</p>
+</div>
+</div>
+<div class="screenshot-box">
+<div class="screenshot-placeholder">
+<span>🖥️</span>
+</div>
+<p style="color: #666; font-size: 0.85rem; margin-top: 10px;">تصویر راهنمای نصب در مک</p>
+</div>
+</div>
+</div>
+  
+
+<div class="install-card troubleshoot-card">
+<h2><span>🔧</span> مشکل دارید؟</h2>
+<div class="troubleshoot-item">
+<h4>❓ دکمه نصب کار نمی‌کند</h4>
+<p>برخی مرورگرها از PWA پشتیبانی نمی‌کنند. از راهنمای بالا برای نصب دستی استفاده کنید.</p>
+</div>
+<div class="troubleshoot-item">
+<h4>❓ آیکون نصب در نوار آدرس نیست</h4>
+<p>مرورگر خود را به آخرین نسخه آپدیت کنید یا از مرورگر دیگری استفاده کنید.</p>
+</div>
+<div class="troubleshoot-item">
+<h4>❓ اپلیکیشن در آیفون نصب نمی‌شود</h4>
+<p>حتماً از مرورگر Safari استفاده کنید. در کروم آیفون امکان نصب وجود ندارد.</p>
+</div>
+<div class="troubleshoot-item">
+<h4>❓ می‌خواهم اپلیکیشن را حذف کنم</h4>
+<p>آیکون اپلیکیشن را در صفحه اصلی نگه دارید و گزینه "Remove App" را بزنید.</p>
+</div>
+</div>
+  
+<div style="text-align: center; padding: 30px; color: #666; border-top: 1px solid rgba(255,255,255,0.05); margin-top: 30px;">
+<p style="font-size: 0.85rem;">طراحی شده با ❤️ برای شما</p>
+</div>
+  
+</div>
+  
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+const tabs = document.querySelectorAll('.platform-tab');
+const contents = document.querySelectorAll('.platform-content');
+  
+tabs.forEach(tab => {
+tab.addEventListener('click', () => {
+tabs.forEach(t => t.classList.remove('active'));
+contents.forEach(c => c.classList.remove('active'));
+tab.classList.add('active');
+const platform = tab.getAttribute('data-platform');
+document.getElementById(platform).classList.add('active');
+        });
+    });
+});
+</script>
+  
+<script>
+
+document.addEventListener('DOMContentLoaded', function() {
+let deferredPrompt;
+const pwaInstallBtn = document.getElementById('pwa-install-btn');
+const apkDownloadUrl = "{% url 'download_android_apk' %}";
+const isAndroid = /Android/i.test(navigator.userAgent);
+  
+
+window.addEventListener('beforeinstallprompt', (e) => {
+e.preventDefault();
+deferredPrompt = e;
+console.log('PWA can be installed - Android native dialog available');
+    });
+  
+
+window.addEventListener('appinstalled', () => {
+console.log('PWA installed successfully');
+if (pwaInstallBtn) {
+pwaInstallBtn.innerHTML = '<span class="icon">✅</span> نصب شد! <span class="icon">✅</span>';
+pwaInstallBtn.style.background = 'linear-gradient(45deg, #00c853, #00e676)';
+pwaInstallBtn.style.cursor = 'default';
+pwaInstallBtn.disabled = true;
+        }
+
+setTimeout(() => {
+window.location.href = '/';
+}, 2000);
+deferredPrompt = null;
+    });
+  
+
+if (pwaInstallBtn) {
+pwaInstallBtn.addEventListener('click', async () => {
+if (deferredPrompt) {
+
+deferredPrompt.prompt();
+
+const { outcome } = await deferredPrompt.userChoice;
+console.log(`User response: ${outcome}`);
+if (outcome === 'accepted') {
+pwaInstallBtn.innerHTML = '<span class="icon">⏳</span> در حال نصب... <span class="icon">⏳</span>';
+                } else {
+pwaInstallBtn.innerHTML = '<span class="icon">❌</span> نصب لغو شد <span class="icon">❌</span>';
+                }
+deferredPrompt = null;
+            } else {
+
+if (window.matchMedia('(display-mode: standalone)').matches) {
+alert('اپلیکیشن قبلاً نصب شده است!');
+window.location.href = '/';
+                } else if (isAndroid) {
+window.location.href = apkDownloadUrl;
+                } else {
+alert('مرورگر شما از نصب PWA پشتیبانی نمی‌کند.\n\nلطفاً از مرورگر گوگل کروم در اندروید استفاده کنید.');
+                }
+            }
+        });
+    }
+  
+
+if (window.matchMedia('(display-mode: standalone)').matches) {
+if (pwaInstallBtn) {
+pwaInstallBtn.innerHTML = '<span class="icon">✅</span> نصب شده <span class="icon">✅</span>';
+pwaInstallBtn.style.background = 'linear-gradient(45deg, #00c853, #00e676)';
+pwaInstallBtn.style.cursor = 'default';
+pwaInstallBtn.disabled = true;
+        }
+    }
+});
+</script>
+{% endblock %}

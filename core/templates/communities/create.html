@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-wrapper" style="max-width:680px; margin:0 auto;">
+    <section class="card" style="padding:24px;">
+        <h1 style="margin-top:0;">ساخت انجمن</h1>
+        <p style="color:var(--text-secondary);">یک موضوع روشن و توضیح کوتاه انتخاب کن تا کاربران بدانند اینجا درباره چیست.</p>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {% for field in form %}
+            <div style="margin-bottom:16px;">
+                <label for="{{ field.id_for_label }}" style="display:block; margin-bottom:7px; font-weight:700;">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small style="color:var(--text-secondary);">{{ field.help_text }}</small>{% endif %}
+                {% for error in field.errors %}<div style="color:#ef4444; margin-top:6px;">{{ error }}</div>{% endfor %}
+            </div>
+            {% endfor %}
+            <div style="display:flex; gap:10px;">
+                <button type="submit" class="btn-primary" style="padding:11px 22px;">ساخت انجمن</button>
+                <a href="{% url 'community_list' %}" style="padding:11px 18px; color:var(--text-secondary); text-decoration:none;">انصراف</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

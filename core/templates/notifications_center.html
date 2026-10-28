@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-wrapper" style="max-width: 820px; margin: 0 auto;">
+    <div class="card" style="padding: 20px; margin-bottom: 18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div>
+                <h2 style="font-weight:800; margin-bottom:6px;">نوتیفیکیشن‌ها</h2>
+                <p style="color:var(--text-secondary);">Unread: {{ unread_count }}</p>
+            </div>
+            <form method="post" style="display:flex; gap:8px; flex-wrap:wrap;">
+                {% csrf_token %}
+                <button class="btn-primary" name="action" value="mark_all_read" type="submit">خواندن همه</button>
+                <button class="btn-primary" name="action" value="clear_read" type="submit" style="background:var(--text-secondary);">پاک کردن خوانده‌ها</button>
+            </form>
+        </div>
+    </div>
+
+    {% for item in notifications %}
+        <a href="{% url 'mark_notification_read' item.id %}" style="display:block;">
+            <div class="card" style="padding:16px; margin-bottom:12px; border-right:4px solid {% if item.is_read %}var(--border-color){% else %}var(--primary-color){% endif %};">
+                <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
+                    <div>
+                        <h3 style="font-size:1rem; font-weight:800; margin-bottom:6px;">{{ item.title }}</h3>
+                        {% if item.message %}
+                            <p style="color:var(--text-secondary); line-height:1.8;">{{ item.message }}</p>
+                        {% endif %}
+                        <small style="color:var(--text-secondary);">{{ item.created_at|date:"H:i - Y/m/d" }}</small>
+                    </div>
+                    {% if not item.is_read %}
+                        <span style="background:var(--primary-color); color:white; border-radius:999px; padding:4px 10px; font-size:.8rem;">جدید</span>
+                    {% endif %}
+                </div>
+            </div>
+        </a>
+    {% empty %}
+        <div class="card" style="padding:30px; text-align:center; color:var(--text-secondary);">هنوز نوتیفیکیشنی نداری.</div>
+    {% endfor %}
+
+    {% if page_obj.has_other_pages %}
+        <div style="display:flex; justify-content:center; gap:12px; margin:20px 0;">
+            {% if page_obj.has_previous %}<a class="btn-primary" href="?page={{ page_obj.previous_page_number }}">قبلی</a>{% endif %}
+            {% if page_obj.has_next %}<a class="btn-primary" href="?page={{ page_obj.next_page_number }}">بعدی</a>{% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

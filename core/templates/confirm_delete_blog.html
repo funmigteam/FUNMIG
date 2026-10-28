@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main-wrapper">
+    <div class="card" style="text-align: center; padding: 40px;">
+        <h2 style="color: #e0245e; margin-bottom: 20px;">آیا مطمئن هستید؟</h2>
+        <p style="margin-bottom: 30px;">شما در حال حذف مقاله <strong>{{ post.title }}</strong> هستید. این عملیات غیرقابل بازگشت است.</p>
+        
+        <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary" style="background: #e0245e;">بله، حذف کن</button>
+        </form>
+        
+        <a href="{% url 'blog_detail' post.slug %}" class="btn-primary" style="background: var(--text-secondary); text-decoration: none; padding: 10px 25px; border-radius: 20px; display: inline-block; margin-right: 10px;">انصراف</a>
+    </div>
+</div>
+{% endblock %}

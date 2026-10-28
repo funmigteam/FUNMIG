@@ -1,0 +1,278 @@
+﻿{% load my_filters %}
+<div class="card post-card" id="post-{{ post.id }}" data-id="{{ post.id }}" data-created="{{ post.created_at|date:'U' }}" onmouseenter="trackPostView({{ post.id }})">
+    {% if post.community %}
+    <a href="{% url 'community_detail' post.community.slug %}"
+       style="display:inline-flex; align-items:center; gap:7px; margin-bottom:12px; padding:6px 11px; border-radius:999px; background:{{ post.community.color }}18; color:{{ post.community.color }}; font-size:.82rem; font-weight:800; text-decoration:none;">
+        انجمن {{ post.community.name }}
+    </a>
+    {% endif %}
+    {% if post.parent %}
+    <div style="background-color: rgba(0,0,0,0.03); padding: 10px; border-radius: 10px; margin-bottom: 15px; border-right: 3px solid var(--primary-color);">
+        <div style="display: flex; margin-left: auto; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
+            در پاسخ به <strong>{{ post.parent.author.username }}</strong>:
+        </div>
+        <div style="opacity: 0.7; font-size: 0.9rem;" class="post-content-wrapper">{{ post.parent.content }}{% if post.parent.image %}<br><small>(دارای فایل پیوست)</small>{% endif %}</div>
+    </div>
+    {% endif %}
+    <div class="post-header">
+        {% if post.author.userprofile.avatar %}
+        <img loading="lazy" decoding="async" src="{{ post.author.userprofile.avatar.url }}" alt="Avatar" class="post-avatar">
+        {% else %}
+        <img loading="lazy" decoding="async" src="/static/default-avatar.png" alt="Avatar" class="post-avatar">
+        {% endif %}
+        <div class="post-info">
+            <h4 style="margin-top: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <a href="{% url 'profile' post.author.username %}" style="text-decoration: none; color: inherit;">
+                    {{ post.author.username }}
+                    {% if post.author.userprofile.selected_tag %}
+                    <span class="animated-tag" style="
+                        background-color: {{ post.author.userprofile.selected_tag.background_color }};
+                        color: {{ post.author.userprofile.selected_tag.color }};
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        font-size: 0.7rem;
+                        margin-right: 6px;
+                        display: inline-block;
+                        animation: tagPulse 2s infinite;
+                        font-weight: 500;
+                        white-space: nowrap;
+                        vertical-align: middle;
+                    ">
+                        {% if post.author.userprofile.selected_tag.icon %}{{ post.author.userprofile.selected_tag.icon }}{% endif %}
+                        {{ post.author.userprofile.selected_tag.name }}
+                    </span>
+                    {% endif %}
+                </a>
+                
+                
+                {% if user != post.author and user.is_authenticated %}
+                <button class="follow-btn-small" 
+                        id="follow-btn-{{ post.author.username }}"
+                        onclick="toggleFollow('{{ post.author.username }}', event)"
+                        style="
+                            padding: 4px 12px;
+                            font-size: 0.7rem;
+                            border-radius: 15px;
+                            border: none;
+                            cursor: pointer;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                            {% if post.author|is_followed_by:user %}
+                            background: var(--primary-color);
+                            color: white;
+                            {% else %}
+                            background: transparent;
+                            border: 1.5px solid var(--primary-color);
+                            color: var(--primary-color);
+                            {% endif %}
+                        ">
+                    {% if post.author|is_followed_by:user %}
+                    ✓ دنبال
+                    {% else %}
+                    + فالو
+                    {% endif %}
+                </button>
+                {% endif %}
+            </h4>
+            <small>{{ post.created_at|date:"H:i - Y/m/d" }}</small>
+            <small style="color: var(--text-secondary);"> • 👁 <span id="view-count-{{ post.id }}">{{ post.total_views }}</span></small>
+            {% if post.author == user %}
+            <small> • <a href="{% url 'edit_post' post.id %}" style="color:var(--primary-color)">ویرایش</a></small>
+            <small> • <a href="#" class="delete-post-btn" data-id="{{ post.id }}" style="color:red">حذف</a></small>
+            {% endif %}
+        </div>
+    </div>
+    <div class="post-content post-content-wrapper">{{ post.content|format_post_text|safe }}</div>
+    
+    {% with media_list=post.active_media %}
+        {% if media_list.exists %}
+        <div class="post-media-container" style="margin-top: 15px;">
+            <div class="media-carousel" data-post-id="{{ post.id }}">
+                {% for m in media_list %}
+                    <div class="media-item" data-index="{{ forloop.counter0 }}" style="display: {% if forloop.first %}block{% else %}none{% endif %};">
+                        {% if m.media_type == 'audio' %}
+                        <div style="background: #f1f3f5; padding: 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🎵</span>
+                            <audio controls style="width: 100%; height: 40px;">
+                                <source src="{{ m.file.url }}">
+                                مرورگر شما از پخش صدا پشتیبانی نمی‌کند.
+                            </audio>
+                        </div>
+                        {% elif m.media_type == 'video' %}
+                        <video controls style="width: 100%; max-height: 500px; border-radius: 10px; background: black;">
+                            <source src="{{ m.file.url }}">
+                            مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                        </video>
+                        {% else %}
+                        <img loading="lazy" decoding="async" src="{{ m.file.url }}" alt="Post media" style="max-width: 100%; border-radius: 10px; display: block;" onerror="this.style.display='none';">
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+            {% if media_list|length > 1 %}
+            <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                <button class="carousel-prev" data-post-id="{{ post.id }}">◀</button>
+                <button class="carousel-next" data-post-id="{{ post.id }}">▶</button>
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+    {% endwith %}
+    <div class="post-actions">
+        {% if user.is_authenticated %}
+        <form action="{% url 'like_post' post.id %}" method="post" class="like-form" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="action-btn">
+                <img loading="lazy" decoding="async" src="/static/icons/funmig-like-icon.png" class="custom-icon" alt="لایک">
+                <span>{{ post.total_likes }}</span>
+            </button>
+        </form>
+        <button class="action-btn" onclick="openReplyModal({{ post.id }}, '{{ post.author.username }}')">
+            <img loading="lazy" decoding="async" src="/static/icons/funmig-share-icon.png" class="custom-icon" alt="بازارسال">
+        </button>
+        <button class="action-btn save-post-btn" data-post-id="{{ post.id }}" type="button" aria-label="ذخیره پست">
+            <img loading="lazy" decoding="async" src="/static/icons/funmig-save-icon.png" class="custom-icon" alt="">
+        </button>
+        {% else %}
+        <a class="action-btn" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}" title="برای تعامل وارد شوید">ورود برای تعامل</a>
+        {% endif %}
+        <span class="action-btn comment-count-span">
+            <img loading="lazy" decoding="async" src="/static/icons/funmig-comment-icon.png" class="custom-icon" alt="کامنت">
+            {{ post.comments.count }}
+        </span>
+    </div>
+    <div class="comments-section">
+        <h4>نظرات</h4>
+        <div class="comments-list" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: 8px; background-color: var(--comment-bg);">
+            {% for comment in post.comments.all %}
+                {% if not comment.parent %}
+            <div class="comment-item" id="comment-{{ comment.id }}">
+                <div class="comment-username-wrapper">
+                    <span class="username-container">
+                        <a href="{% url 'profile' comment.author.username %}" style="float: right; display: block; padding-right: 0px; margin-right: 0px; text-decoration: none; color: var(--text-secondary);">
+                            {{ comment.author.username }}
+                        </a>
+                    </span>
+                    {% if comment.author == user %}
+                    <a href="#" class="delete-comment-btn" data-id="{{ comment.id }}" style="color:red; font-size:0.8rem; text-decoration:none;">حذف</a>
+                    {% endif %}
+                </div>
+                <div class="comment-body">
+                    {{ comment.text }}
+                </div>
+                {% if comment.replies.all %}
+                {% if user.is_authenticated %}
+                <small style="display:block; margin-top:5px;">
+                    <a href="#" onclick="toggleReplies({{ comment.id }}); return false;" style="color:var(--text-secondary); font-size:0.8rem; text-decoration: none;" id="reply-toggle-{{ comment.id }}">
+                        دیدن پاسخ‌ها ({{ comment.replies.all|length }})
+                    </a>
+                </small>
+                {% endif %}
+                <small style="display:block; margin-top:5px;">
+                    <a href="#" onclick="toggleReplyForm({{ comment.id }}); return false;" style="color:var(--primary-color); font-size:0.8rem;">پاسخ</a>
+                </small>
+                <div id="reply-form-{{ comment.id }}" style="display:none; margin-top:10px; background:var(--comment-bg); padding:10px; border-radius:8px;">
+                    <form class="comment-form" action="{% url 'add_comment' post.id %}" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                        <input type="text" name="text" placeholder="پاسخ خود را بنویسید..." required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd; direction: rtl;">
+                        <button type="submit" class="btn-primary" style="font-size:0.8rem; padding: 5px 15px; margin-top:5px;">ارسال پاسخ</button>
+                    </form>
+                </div>
+                {% endif %}
+                <div id="replies-list-{{ comment.id }}" style="display: none; margin-right: 15px; border-right: 2px solid #eee; padding-right: 10px;">
+                    {% for reply in comment.replies.all %}
+                    <div class="comment-item comment-reply" id="comment-{{ reply.id }}" style="margin-top: 10px;">
+                        <div class="comment-username-wrapper">
+                            <span class="username-container">
+                                <a href="{% url 'profile' reply.author.username %}" style="float: right; display: block; padding-right: 0px; margin-right: 0px; text-decoration: none; color: var(--text-secondary);">
+                                    {{ reply.author.username }}
+                                </a>
+                            </span>
+                            {% if reply.author == user %}
+                            <a href="#" class="delete-comment-btn" data-id="{{ reply.id }}" style="color:red; font-size:0.7rem; text-decoration:none;">حذف</a>
+                            {% endif %}
+                        </div>
+                        <div class="comment-body">
+                            {{ reply.text }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% if user.is_authenticated %}
+        <form class="comment-form" action="{% url 'add_comment' post.id %}" method="post" style="margin-top:10px;">
+            {% csrf_token %}
+            <input type="text" name="text" placeholder="نظر خود را بنویسید..." required style="width:100%; padding:8px; border-radius:5px; border:1px solid #ddd; direction: rtl;">
+            <button type="submit" class="btn-primary" style="font-size:0.8rem; padding: 5px 15px; margin-top:5px;">ارسال نظر</button>
+        </form>
+        {% else %}
+        <p style="margin-top:10px;">برای ثبت نظر <a href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">وارد شوید</a>.</p>
+        {% endif %}
+    </div>
+</div>
+<script>
+if (!window.viewedPostIds) {
+    window.viewedPostIds = new Set();
+}
+
+function getPostCsrfToken() {
+    const tokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (tokenInput) return tokenInput.value;
+    if (typeof getCookie === 'function') return getCookie('csrftoken');
+    return '';
+}
+
+function trackPostView(postId) {
+    if (window.viewedPostIds.has(postId)) return;
+    window.viewedPostIds.add(postId);
+
+    fetch(`/post/${postId}/view/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getPostCsrfToken(),
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const counter = document.getElementById(`view-count-${postId}`);
+            if (counter) counter.textContent = data.views_count;
+        }
+    })
+    .catch(error => console.error('Error tracking post view:', error));
+}
+
+;(function(){
+    function showIndex(container, idx){
+        var items = container.querySelectorAll('.media-item');
+        items.forEach(function(it, i){ it.style.display = (i===idx)?'block':'none'; });
+    }
+    document.querySelectorAll('.carousel-prev').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var postId = btn.getAttribute('data-post-id');
+            var container = document.querySelector('.media-carousel[data-post-id="'+postId+'"]');
+            if(!container) return;
+            var items = container.querySelectorAll('.media-item');
+            var current = Array.prototype.findIndex.call(items, function(it){ return it.style.display!=='none'; });
+            var next = (current-1+items.length)%items.length;
+            showIndex(container, next);
+        });
+    });
+    document.querySelectorAll('.carousel-next').forEach(function(btn){
+        btn.addEventListener('click', function(){
+            var postId = btn.getAttribute('data-post-id');
+            var container = document.querySelector('.media-carousel[data-post-id="'+postId+'"]');
+            if(!container) return;
+            var items = container.querySelectorAll('.media-item');
+            var current = Array.prototype.findIndex.call(items, function(it){ return it.style.display!=='none'; });
+            var next = (current+1)%items.length;
+            showIndex(container, next);
+        });
+    });
+})();
+</script>

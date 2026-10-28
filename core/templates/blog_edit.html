@@ -1,0 +1,5 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% include 'partials/blog_editor_form.html' with back_url='blog_detail' back_slug=post.slug back_label='بازگشت به مقاله' submit_label='ذخیره تغییرات' %}
+{% endblock %}

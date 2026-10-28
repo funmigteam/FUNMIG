@@ -1,0 +1,105 @@
+﻿
+{% with media_list=post.active_media %}
+    {% if media_list.exists %}
+    {% with media_count=media_list|length %}
+    <div class="post-media-container media-count-{{ media_count }}">
+        {% if media_count == 1 %}
+        <div class="media-grid media-grid-1">
+            {% for m in media_list %}
+            <div class="media-item">
+                {% if m.media_type == 'audio' %}
+                <div class="audio-block">
+                    <span>🎵</span>
+                    <audio controls>
+                        <source src="{{ m.file.url }}">
+                        مرورگر شما از پخش صدا پشتیبانی نمی‌کند.
+                    </audio>
+                </div>
+                {% elif m.media_type == 'video' %}
+                <video controls>
+                    <source src="{{ m.file.url }}">
+                    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                </video>
+                {% else %}
+                <img loading="lazy" decoding="async" src="{{ m.file.url }}" alt="Post media" onerror="this.style.display='none';">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% elif media_count == 2 %}
+        <div class="media-grid media-grid-2">
+            {% for m in media_list %}
+            <div class="media-item">
+                {% if m.media_type == 'audio' %}
+                <div class="audio-block">
+                    <span>🎵</span>
+                    <audio controls>
+                        <source src="{{ m.file.url }}">
+                        مرورگر شما از پخش صدا پشتیبانی نمی‌کند.
+                    </audio>
+                </div>
+                {% elif m.media_type == 'video' %}
+                <video controls>
+                    <source src="{{ m.file.url }}">
+                    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                </video>
+                {% else %}
+                <img loading="lazy" decoding="async" src="{{ m.file.url }}" alt="Post media" onerror="this.style.display='none';">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% elif media_count == 3 %}
+        <div class="media-grid media-grid-3">
+            {% for m in media_list %}
+            <div class="media-item">
+                {% if m.media_type == 'audio' %}
+                <div class="audio-block">
+                    <span>🎵</span>
+                    <audio controls>
+                        <source src="{{ m.file.url }}">
+                        مرورگر شما از پخش صدا پشتیبانی نمی‌کند.
+                    </audio>
+                </div>
+                {% elif m.media_type == 'video' %}
+                <video controls>
+                    <source src="{{ m.file.url }}">
+                    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                </video>
+                {% else %}
+                <img loading="lazy" decoding="async" src="{{ m.file.url }}" alt="Post media" onerror="this.style.display='none';">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="media-grid media-grid-4">
+            {% for m in media_list|slice:":4" %}
+            <div class="media-item">
+                {% if m.media_type == 'audio' %}
+                <div class="audio-block">
+                    <span>🎵</span>
+                    <audio controls>
+                        <source src="{{ m.file.url }}">
+                        مرورگر شما از پخش صدا پشتیبانی نمی‌کند.
+                    </audio>
+                </div>
+                {% elif m.media_type == 'video' %}
+                <video controls>
+                    <source src="{{ m.file.url }}">
+                    مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.
+                </video>
+                {% else %}
+                <img loading="lazy" decoding="async" src="{{ m.file.url }}" alt="Post media" onerror="this.style.display='none';">
+                {% endif %}
+                {% if forloop.last and media_count > 4 %}
+                <div class="more-overlay">+{{ media_count|add:'-4' }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endwith %}
+    {% endif %}
+{% endwith %}

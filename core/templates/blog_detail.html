@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+{% load blog_extras %}
+
+{% block content %}
+<div class="main-wrapper blog-detail-shell">
+    <a href="{% url 'blog_list' %}" class="back-button">بازگشت به وبلاگ</a>
+
+    <article class="article-card">
+        {% if user.is_staff %}
+        <div class="admin-actions">
+            <a href="{% url 'blog_edit' post.slug %}" class="admin-btn edit-btn">ویرایش</a>
+            <form action="{% url 'blog_post_delete' post.slug %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="admin-btn delete-btn" onclick="return confirm('آیا از حذف این مقاله مطمئن هستید؟')">حذف</button>
+            </form>
+        </div>
+        {% endif %}
+
+        <header class="article-header">
+            <div class="article-meta">
+                {% if post.author %}<span>{{ post.author.username }}</span>{% endif %}
+                <span>{{ post.created_at|date:"Y/m/d" }}</span>
+                <span>{{ post.reading_time|default:"۵" }} دقیقه مطالعه</span>
+            </div>
+            <h1 class="article-title">{{ post.title }}</h1>
+            {% if post.description %}
+            <p class="article-description">{{ post.description }}</p>
+            {% endif %}
+        </header>
+
+        {% if post.image %}
+        <figure class="article-cover">
+            <img loading="lazy" decoding="async" src="{{ post.image.url }}" alt="{{ post.title }}">
+        </figure>
+        {% endif %}
+
+        <div class="article-content">
+            {{ post.content|safe }}
+        </div>
+
+        {% if post.source %}
+        <div class="article-source">
+            <span>منبع:</span>
+            {% if post.source_url %}
+                <a href="{{ post.source_url }}" target="_blank" rel="noopener noreferrer">{{ post.source }}</a>
+            {% elif post.source|slice:":4" == "http" %}
+                <a href="{{ post.source }}" target="_blank" rel="noopener noreferrer">{{ post.source }}</a>
+            {% else %}
+                <strong>{{ post.source }}</strong>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div class="share-section">
+            <span class="share-label">اشتراک‌گذاری:</span>
+            <div class="share-buttons">
+                <a href="https://telegram.me/share/url?url={{ request.build_absolute_uri }}&text={{ post.title }}" target="_blank" class="share-btn">تلگرام</a>
+                <a href="https://wa.me/?text={{ post.title }} - {{ request.build_absolute_uri }}" target="_blank" class="share-btn">واتساپ</a>
+                <button class="share-btn copy-link" type="button" onclick="copyBlogLink()">کپی لینک</button>
+            </div>
+        </div>
+
+        {% if post.tags %}
+        <div class="article-tags">
+            <span class="tags-label">برچسب‌ها:</span>
+            {% for tag in post.tags|split:',' %}
+                <a href="{% url 'blog_list' %}?tag={{ tag|urlencode }}" class="tag">{{ tag }}</a>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </article>
+
+    {% if related_posts %}
+    <section class="related-posts">
+        <h3 class="related-title">مقاله‌های مرتبط</h3>
+        <div class="related-grid">
+            {% for related in related_posts %}
+            <a href="{% url 'blog_detail' related.slug %}" class="related-card">
+                {% if related.image %}
+                <img loading="lazy" decoding="async" src="{{ related.image.url }}" alt="{{ related.title }}">
+                {% endif %}
+                <strong>{{ related.title }}</strong>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<style>
+.blog-detail-shell {
+    max-width: 920px;
+}
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+.article-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 18px 55px rgba(15, 23, 42, 0.08);
+}
+.admin-actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px 24px;
+    border-bottom: 1px solid #e5e7eb;
+}
+.admin-actions form {
+    margin: 0;
+}
+.admin-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 800;
+}
+.edit-btn {
+    background: #2563eb;
+}
+.delete-btn {
+    background: #dc2626;
+}
+.article-header {
+    padding: 34px 36px 18px;
+}
+.article-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 2.2rem;
+    line-height: 1.45;
+    letter-spacing: 0;
+}
+.article-description {
+    margin: 18px 0 0;
+    color: #475569;
+    font-size: 1.08rem;
+    line-height: 2;
+}
+.article-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin: 0 0 16px;
+    color: #64748b;
+    font-weight: 700;
+}
+.article-cover {
+    margin: 10px 0 0;
+}
+.article-cover img {
+    display: block;
+    width: 100%;
+    max-height: 520px;
+    object-fit: cover;
+}
+.article-content {
+    padding: 34px 36px;
+    color: #111827;
+    font-size: 1.12rem;
+    line-height: 2.15;
+}
+.article-content p {
+    margin: 0 0 22px;
+}
+.article-content h2,
+.article-content h3,
+.article-content h4 {
+    color: #0f172a;
+    margin: 36px 0 14px;
+    line-height: 1.6;
+}
+.article-content h2 {
+    font-size: 1.65rem;
+}
+.article-content h3 {
+    font-size: 1.35rem;
+}
+.article-content strong,
+.article-content b {
+    font-weight: 900;
+}
+.article-content a {
+    color: #2563eb;
+    font-weight: 800;
+    text-decoration-thickness: 2px;
+}
+.article-content ul,
+.article-content ol {
+    padding-right: 28px;
+    margin: 0 0 24px;
+}
+.article-content li {
+    margin-bottom: 10px;
+}
+.article-content figure {
+    margin: 30px 0;
+}
+.article-content img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+.article-content figcaption {
+    margin-top: 10px;
+    color: #64748b;
+    font-size: 0.92rem;
+    text-align: center;
+}
+.article-content audio {
+    width: 100%;
+    margin: 10px 0;
+}
+.article-content blockquote,
+.article-content .blog-callout {
+    margin: 34px 0;
+    padding: 22px 26px;
+    border-right: 6px solid #0ea5e9;
+    background: #ecfeff;
+    color: #0f172a;
+    border-radius: 8px;
+    font-size: 1.18rem;
+    line-height: 2;
+    font-weight: 900;
+}
+.article-content hr {
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+    margin: 34px 0;
+}
+.article-source,
+.share-section,
+.article-tags {
+    padding: 22px 36px;
+    border-top: 1px solid #e5e7eb;
+}
+.article-source {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    color: #334155;
+}
+.article-source a {
+    color: #2563eb;
+}
+.share-section {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #f8fafc;
+}
+.share-label,
+.tags-label {
+    font-weight: 900;
+    color: #0f172a;
+}
+.share-buttons,
+.article-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+.share-btn,
+.tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 7px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #1e40af;
+    text-decoration: none;
+    cursor: pointer;
+    font-weight: 800;
+}
+.related-posts {
+    margin-top: 32px;
+}
+.related-title {
+    color: #0f172a;
+}
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+}
+.related-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    color: #0f172a;
+    text-decoration: none;
+}
+.related-card img {
+    width: 100%;
+    height: 130px;
+    object-fit: cover;
+}
+.related-card strong {
+    display: block;
+    padding: 14px;
+    line-height: 1.7;
+}
+@media (max-width: 768px) {
+    .article-header,
+    .article-content,
+    .article-source,
+    .share-section,
+    .article-tags {
+        padding-right: 20px;
+        padding-left: 20px;
+    }
+    .article-title {
+        font-size: 1.55rem;
+    }
+    .share-section {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .related-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+function copyBlogLink() {
+    navigator.clipboard.writeText(window.location.href).then(function() {
+        alert('لینک مقاله کپی شد.');
+    });
+}
+</script>
+{% endblock %}

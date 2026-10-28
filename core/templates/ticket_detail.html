@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    body.dark-mode .admin-msg-bg {
+        background-color: #1a3a5a !important; 
+        border: 1px solid #2c5282 !important;
+        color: #e2e8f0 !important;
+    }
+    body:not(.dark-mode) .admin-msg-bg {
+        background-color: #e3f2fd; 
+        color: #333;
+    }
+
+    body.dark-mode .user-msg-bg {
+        background-color: #2d3748 !important; 
+        color: #fff !important;
+    }
+    body:not(.dark-mode) .user-msg-bg {
+        background-color: #f5f5f5; 
+        color: #333;
+    }
+</style>
+
+<div class="container" style="max-width: 800px; margin-top: 30px;">
+    <a href="{% url 'ticket_list' %}" style="color: var(--text-secondary); text-decoration: none; margin-bottom: 20px; display: inline-block;">&larr; بازگشت به لیست</a>
+    
+    <div class="card" style="background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+            <h2 style="margin: 0; color: var(--text-main);">{{ ticket.subject }}</h2>
+            <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ ticket.created_at|date:"Y/m/d" }}</span>
+        </div>
+        <p style="color: var(--text-main); line-height: 1.6; white-space: pre-wrap;">{{ ticket.message }}</p>
+    </div>
+
+    <h3 style="margin-bottom: 15px; color: var(--text-main);">گفتگو</h3>
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+        {% for reply in replies %}
+            <div class="{% if reply.is_admin %}admin-msg-bg{% else %}user-msg-bg{% endif %}" 
+                 style="padding: 15px; border-radius: 10px; align-self: {% if reply.is_admin %}flex-start{% else %}flex-end{% endif %}; max-width: 80%;">
+                <div style="font-size: 0.8rem; margin-bottom: 5px; color: var(--text-secondary); font-weight: bold;">
+                    {% if reply.is_admin %}پشتیبانی{% else %}شما{% endif %}
+                </div>
+                <div style="color: inherit; white-space: pre-wrap;">{{ reply.message }}</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if ticket.status == 'open' %}
+    <form method="post" style="background: var(--card-bg); padding: 20px; border-radius: 15px;">
+        {% csrf_token %}
+        <div class="form-group">
+            <textarea name="message" rows="4" placeholder="پیام خود را بنویسید..." required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: var(--input-bg); color: var(--text-main); resize: vertical;"></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="margin-top: 10px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">ارسال پاسخ</button>
+    </form>
+    {% else %}
+        <div style="text-align: center; padding: 20px; background: #fbe9eb; color: #bd2130; border-radius: 10px;">
+            این تیکت بسته شده است.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

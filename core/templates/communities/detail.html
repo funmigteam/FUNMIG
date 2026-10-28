@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-wrapper" style="max-width:980px; margin:0 auto;">
+    <section class="card" style="padding:0; overflow:hidden; margin-bottom:18px;">
+        <div style="height:170px; background:{{ community.color }};">
+            {% if community.cover %}
+            <img loading="lazy" decoding="async" src="{{ community.cover.url }}" alt="{{ community.name }}" style="width:100%; height:100%; object-fit:cover;">
+            {% endif %}
+        </div>
+        <div style="padding:22px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap;">
+                <div>
+                    <h1 style="margin:0 0 8px;">{{ community.name }}</h1>
+                    <p style="margin:0 0 10px; color:var(--text-secondary);">{{ community.description }}</p>
+                    <small style="color:var(--text-secondary);">{{ member_count }} عضو · ساخته‌شده توسط @{{ community.owner.username }}</small>
+                </div>
+                {% if membership %}
+                    {% if community.owner_id != user.id %}
+                    <form method="post" action="{% url 'community_leave' community.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" style="padding:9px 15px; border:1px solid #ef4444; color:#ef4444; background:transparent; border-radius:10px; cursor:pointer;">خروج از انجمن</button>
+                    </form>
+                    {% else %}
+                    <span style="padding:8px 13px; border-radius:999px; background:{{ community.color }}18; color:{{ community.color }}; font-weight:800;">سازنده انجمن</span>
+                    {% endif %}
+                {% else %}
+                <form method="post" action="{% url 'community_join' community.slug %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-primary" style="padding:10px 18px;">عضویت در انجمن</button>
+                </form>
+                {% endif %}
+            </div>
+            {% if community.rules %}
+            <details style="margin-top:18px; padding:13px; border:1px solid var(--border-color); border-radius:12px;">
+                <summary style="font-weight:800; cursor:pointer;">قوانین انجمن</summary>
+                <div style="white-space:pre-line; margin-top:10px; color:var(--text-secondary);">{{ community.rules }}</div>
+            </details>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if membership %}
+    <section class="card" style="padding:20px; margin-bottom:18px;">
+        <h3 style="margin-top:0;">انتشار در {{ community.name }}</h3>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.content }}
+            {% for error in form.content.errors %}<div style="color:#ef4444;">{{ error }}</div>{% endfor %}
+            <div style="margin-top:12px;">
+                <input type="file" name="media" multiple accept="image/*,video/*,audio/*"
+                       style="width:100%; padding:10px; border:1px solid var(--border-color); border-radius:10px;">
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:12px; padding:10px 20px;">انتشار پست</button>
+        </form>
+    </section>
+    {% endif %}
+
+    <div style="display:grid; grid-template-columns:minmax(0, 1fr) 230px; gap:18px; align-items:start;">
+        <section>
+            <h2 style="font-size:1.25rem;">پست‌های انجمن</h2>
+            {% for post in posts %}
+                {% include 'post_card.html' with post=post user=request.user %}
+            {% empty %}
+            <div class="card" style="padding:32px; text-align:center; color:var(--text-secondary);">هنوز پستی منتشر نشده است.</div>
+            {% endfor %}
+
+            {% if posts.has_other_pages %}
+            <div style="display:flex; justify-content:center; gap:12px; margin-top:18px;">
+                {% if posts.has_previous %}<a href="?page={{ posts.previous_page_number }}">قبلی</a>{% endif %}
+                <span>صفحه {{ posts.number }} از {{ posts.paginator.num_pages }}</span>
+                {% if posts.has_next %}<a href="?page={{ posts.next_page_number }}">بعدی</a>{% endif %}
+            </div>
+            {% endif %}
+        </section>
+
+        <aside class="card" style="padding:16px;">
+            <h3 style="margin-top:0;">اعضای تازه</h3>
+            {% for member in recent_members %}
+            <a href="{% url 'profile' member.username %}" style="display:flex; align-items:center; gap:9px; padding:8px 0; color:inherit; text-decoration:none;">
+                {% if member.userprofile.avatar %}
+                <img loading="lazy" decoding="async" src="{{ member.userprofile.avatar.url }}" style="width:34px; height:34px; border-radius:50%; object-fit:cover;">
+                {% else %}
+                <img loading="lazy" decoding="async" src="/static/default-avatar.png" style="width:34px; height:34px; border-radius:50%;">
+                {% endif %}
+                <span>@{{ member.username }}</span>
+            </a>
+            {% endfor %}
+        </aside>
+    </div>
+</div>
+<style>
+@media (max-width: 760px) {
+    .main-wrapper > div[style*="grid-template-columns:minmax"] {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+{% endblock %}

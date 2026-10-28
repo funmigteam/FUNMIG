@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    body.dark-mode .admin-msg-bg {
+        background-color: #1a3a5a !important; 
+        border: 1px solid #2c5282 !important;
+        color: #e2e8f0 !important;
+    }
+    body:not(.dark-mode) .admin-msg-bg {
+        background-color: #e3f2fd;
+        color: #333;
+    }
+
+    body.dark-mode .user-msg-bg {
+        background-color: #2d3748 !important; 
+        color: #fff !important;
+    }
+    body:not(.dark-mode) .user-msg-bg {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+</style>
+
+<div class="container" style="max-width: 800px; margin-top: 30px;">
+    <a href="{% url 'admin_ticket_list' %}" style="color: var(--text-secondary); text-decoration: none; margin-bottom: 20px; display: inline-block;">&larr; بازگشت به لیست</a>
+    
+    <div class="card" style="background: var(--card-bg); padding: 20px; border-radius: 15px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+            <div>
+                <h2 style="margin: 0; color: var(--text-main);">{{ ticket.subject }}</h2>
+                <span style="font-size: 0.9rem; color: var(--text-secondary);">از طرف: {{ ticket.user.username }}</span>
+            </div>
+            <div style="text-align: left;">
+                <span style="font-size: 0.8rem; color: var(--text-secondary); display: block;">{{ ticket.created_at|date:"Y/m/d - H:i" }}</span>
+                {% if ticket.status == 'open' %}
+                    <span style="background: #e6f4ea; color: #1e7e34; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-top: 5px;">باز</span>
+                {% else %}
+                    <span style="background: #fbe9eb; color: #bd2130; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; display: inline-block; margin-top: 5px;">بسته</span>
+                {% endif %}
+            </div>
+        </div>
+        <p style="color: var(--text-main); line-height: 1.6; white-space: pre-wrap;">{{ ticket.message }}</p>
+    </div>
+
+    <h3 style="margin-bottom: 15px; color: var(--text-main);">مکالمات</h3>
+    <div style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px;">
+        {% for reply in replies %}
+            <div class="{% if reply.is_admin %}admin-msg-bg{% else %}user-msg-bg{% endif %}" 
+                 style="padding: 15px; border-radius: 10px; align-self: {% if reply.is_admin %}flex-start{% else %}flex-end{% endif %}; max-width: 80%;">
+                <div style="font-size: 0.8rem; margin-bottom: 5px; color: var(--text-secondary); font-weight: bold;">
+                    {% if reply.is_admin %}شما (ادمین){% else %}{{ reply.user.username }}{% endif %}
+                </div>
+                <div style="color: inherit; white-space: pre-wrap;">{{ reply.message }}</div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <form method="post" style="flex: 1; min-width: 300px; background: var(--card-bg); padding: 20px; border-radius: 15px;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="reply">
+            <div class="form-group">
+                <textarea name="message" rows="3" placeholder="پاسخ خود را بنویسید..." required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: var(--input-bg); color: var(--text-main); resize: vertical;"></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 10px; padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer;">ارسال پاسخ</button>
+        </form>
+
+        <form method="post" style="flex: 0 0 auto;">
+            {% csrf_token %}
+            {% if ticket.status == 'open' %}
+                <input type="hidden" name="action" value="close">
+                <button type="submit" class="btn-primary" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer;">بستن تیکت</button>
+            {% else %}
+                <input type="hidden" name="action" value="reopen">
+                <button type="submit" class="btn-primary" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer;">باز کردن مجدد</button>
+            {% endif %}
+        </form>
+        
+        <form method="post" action="{% url 'delete_ticket' ticket.id %}" style="flex: 0 0 auto;">
+            {% csrf_token %}
+            <button type="submit" class="btn-primary" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer;">حذف تیکت</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

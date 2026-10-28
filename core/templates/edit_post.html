@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card create-post">
+    <h3>ویرایش پست</h3>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div style="margin-bottom: 15px;">
+            <label>متن پست:</label>
+            {{ form.content }}
+        </div>
+        <div style="margin-bottom: 15px;">
+            <label>فایل پست (عکس، ویدیو یا موزیک):</label>
+            <input type="file" name="image" accept="image/*,video/*,audio/*" style="width: 100%;">
+            
+            {% if post.image %}
+                <div style="margin-top: 10px;">
+                    <small>فایل فعلی:</small><br>
+                    {% if post.image.url|lower|slice:"-4:" == ".mp3" %}
+                        <audio controls style="width: 200px;">
+                            <source src="{{ post.image.url }}">
+                        </audio>
+                    {% elif post.image.url|lower|slice:"-5:" == ".mp4" %}
+                        <video controls style="width: 200px; height: auto;">
+                            <source src="{{ post.image.url }}">
+                        </video>
+                    {% else %}
+                        <img loading="lazy" decoding="async" src="{{ post.image.url }}" alt="Current Image" style="max-width: 200px; border-radius: 5px;">
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="clearfix">
+            <a href="{% url 'home' %}" class="btn-primary" style="background: #ccc; color: #333; text-decoration: none; display: inline-block; padding: 10px 25px; border-radius: 20px;">انصراف</a>
+            <button type="submit" class="btn-primary">ذخیره تغییرات</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

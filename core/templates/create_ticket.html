@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin-top: 30px; margin-bottom: 50px;">
+    <div class="card" style="background: var(--card-bg); padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+        <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-main);">ارسال تیکت جدید</h2>
+        
+        {% if messages %}
+            <div class="alert" style="padding: 10px; margin-bottom: 20px; border-radius: 5px; background: #d4edda; color: #155724;">
+                {% for message in messages %}
+                    {{ message }}
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group" style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">موضوع</label>
+                <input type="text" name="subject" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main);">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; color: var(--text-secondary);">پیام شما</label>
+                <textarea name="message" rows="6" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; background: var(--input-bg); color: var(--text-main); resize: vertical;"></textarea>
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 12px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem;">ارسال تیکت</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

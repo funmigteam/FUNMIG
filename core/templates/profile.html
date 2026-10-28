@@ -1,0 +1,199 @@
+{% extends 'base.html' %}
+{% load my_filters %}
+{% block content %}
+<style>
+    
+    .cine-profile { --accent: {{ profile.background_color|default:'#7c3aed' }}; --ink: {{ profile.text_color|default:'#f8fafc' }}; width:min(1120px, calc(100% - 24px)); margin:22px auto 48px; }
+    .cine-profile *, .cine-profile *::before, .cine-profile *::after { box-sizing:border-box; }
+    .cine-hero { isolation:isolate; position:relative; overflow:hidden; min-height:430px; padding:clamp(24px, 6vw, 66px); border:1px solid rgba(255,255,255,.22); border-radius:32px; color:var(--ink); background:linear-gradient(128deg, color-mix(in srgb, var(--accent) 92%, #06101d), #07111f 54%, #02060d); box-shadow:0 30px 80px rgba(2,6,23,.36); }
+    .cine-hero::before { content:""; position:absolute; z-index:-2; inset:-35%; background:radial-gradient(circle at 23% 31%, rgba(255,255,255,.37), transparent 0 12%), radial-gradient(circle at 74% 75%, color-mix(in srgb, var(--accent) 30%, #38bdf8), transparent 0 25%), conic-gradient(from 210deg at 50% 50%, transparent, rgba(255,255,255,.13), transparent 35%); animation:cineOrbit 16s linear infinite; }
+    .cine-hero::after { content:""; position:absolute; z-index:-1; inset:0; pointer-events:none; opacity:.14; background-image:linear-gradient(rgba(255,255,255,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.1) 1px, transparent 1px); background-size:38px 38px; mask-image:linear-gradient(to bottom, #000, transparent 92%); }
+    .cine-timecode { position:absolute; z-index:6; left:28px; top:25px; direction:ltr; font:700 .67rem/1 monospace; letter-spacing:.12em; color:rgba(255,255,255,.7); }
+    .cine-timecode::before { content:"REC"; color:#fb7185; margin-right:7px; animation:cineBlink 1s steps(2,end) infinite; }
+    .cine-spotlight { position:absolute; z-index:-1; width:68%; height:155%; right:-17%; top:-29%; transform:rotate(23deg); opacity:.3; background:linear-gradient(90deg, transparent, rgba(186,230,253,.42), transparent); filter:blur(13px); animation:cineLightSweep 7s ease-in-out infinite alternate; }
+    .cine-crew { position:absolute; z-index:1; left:2%; bottom:8%; width:min(45%, 420px); height:250px; pointer-events:none; opacity:.62; filter:drop-shadow(0 14px 8px rgba(0,0,0,.36)); }
+    .cine-crew::after { content:""; position:absolute; right:-4%; bottom:3%; width:115%; height:2px; background:linear-gradient(90deg, transparent, rgba(255,255,255,.64), transparent); box-shadow:0 8px 24px rgba(56,189,248,.5); }
+    .cine-stick { position:absolute; bottom:10px; width:89px; height:205px; transform-origin:50% 100%; animation:cineWalk 3.5s ease-in-out infinite; }
+    .cine-stick.second { left:34%; transform:scale(.72); opacity:.65; animation-delay:-1.25s; } .cine-stick.third { left:64%; transform:scale(.48); opacity:.42; animation-delay:-2.1s; }
+    .cine-stick svg { width:100%; height:100%; overflow:visible; } .cine-stick circle, .cine-stick path { fill:none; stroke:#e0f2fe; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; }
+    .cine-stick .arm-left { transform-origin:43px 72px; animation:cineArmLeft 1.75s ease-in-out infinite alternate; } .cine-stick .arm-right { transform-origin:46px 72px; animation:cineArmRight 1.75s ease-in-out infinite alternate; }
+    .cine-stick .leg-left { transform-origin:45px 123px; animation:cineLegLeft 1.75s ease-in-out infinite alternate; } .cine-stick .leg-right { transform-origin:45px 123px; animation:cineLegRight 1.75s ease-in-out infinite alternate; }
+    .cine-kicker { display:flex; align-items:center; gap:8px; margin:0 0 20px; font-size:.76rem; letter-spacing:.1em; font-weight:800; text-transform:uppercase; opacity:.85; }
+    .cine-kicker, .cine-identity, .cine-bio, .cine-dob, .cine-metrics, .cine-actions { position:relative; z-index:2; }
+    .cine-kicker i { width:8px; height:8px; border-radius:50%; background:#4ade80; box-shadow:0 0 0 0 rgba(74,222,128,.65); animation:cinePulse 2s infinite; }
+    .cine-identity { position:relative; display:flex; align-items:center; gap:clamp(18px, 4vw, 32px); max-width:720px; }
+    .cine-avatar-frame { flex:0 0 auto; position:relative; width:clamp(102px, 18vw, 150px); aspect-ratio:1; padding:4px; border-radius:31% 69% 63% 37% / 34% 31% 69% 66%; background:linear-gradient(135deg, #fff, rgba(255,255,255,.1), #38bdf8); animation:cineMorph 9s ease-in-out infinite; box-shadow:0 20px 45px rgba(0,0,0,.3); }
+    .cine-avatar-frame img { display:block; width:100%; height:100%; border:3px solid rgba(5,12,23,.9); border-radius:inherit; object-fit:cover; }
+    .cine-avatar-frame::after { content:""; position:absolute; width:17px; height:17px; left:5%; bottom:7%; border:3px solid #eafff2; border-radius:50%; background:#22c55e; box-shadow:0 0 18px #22c55e; }
+    .cine-identity h1 { margin:0; font-size:clamp(1.65rem, 5vw, 3.15rem); line-height:1.08; text-wrap:balance; }
+    .cine-handle { display:inline-flex; align-items:center; gap:8px; margin:13px 0 0; padding:7px 11px 7px 14px; direction:ltr; border:1px solid rgba(255,255,255,.23); border-radius:999px; color:#f8fbff; font-size:.84rem; font-weight:800; letter-spacing:.055em; text-align:right; background:linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.04)); box-shadow:inset 0 1px 0 rgba(255,255,255,.24), 0 8px 20px rgba(0,0,0,.14); backdrop-filter:blur(9px); }
+    .cine-handle::before { content:"@"; display:grid; place-items:center; width:21px; height:21px; border-radius:50%; color:#07111f; font-size:.82rem; background:linear-gradient(135deg, #e0f2fe, #38bdf8); box-shadow:0 0 15px rgba(56,189,248,.65); }
+    .cine-bio { max-width:640px; margin:27px 0 0; line-height:2; font-size:clamp(.91rem, 2vw, 1rem); color:color-mix(in srgb, var(--ink) 90%, transparent); }
+    .cine-tag { display:inline-flex; align-items:center; gap:5px; margin:0 8px; padding:5px 10px; border:1px solid rgba(255,255,255,.33); border-radius:999px; font-size:.72rem; vertical-align:middle; box-shadow:0 6px 18px rgba(0,0,0,.15); }
+    .cine-dob { display:inline-flex; align-items:center; gap:9px; margin:16px 0 0; padding:8px 12px; border:1px solid rgba(255,255,255,.18); border-radius:14px; color:rgba(255,255,255,.92); font-size:.79rem; font-weight:700; background:rgba(1,8,18,.2); box-shadow:inset 0 1px 0 rgba(255,255,255,.12); backdrop-filter:blur(8px); }
+    .cine-dob::before { content:"✦"; display:grid; place-items:center; width:23px; height:23px; border-radius:8px; color:#3b0764; font-size:.9rem; background:linear-gradient(135deg, #f0abfc, #a78bfa); box-shadow:0 0 15px rgba(216,180,254,.48); }
+    .cine-dob-label { opacity:.66; font-weight:600; } .cine-dob-date { direction:ltr; font-variant-numeric:tabular-nums; letter-spacing:.06em; color:#fff; }
+    .cine-metrics { display:grid; grid-template-columns:repeat(2, minmax(0, 150px)); gap:10px; margin:36px 0 0; }
+    .cine-stat { position:relative; display:block; overflow:hidden; padding:15px 18px; border:1px solid rgba(255,255,255,.17); border-radius:18px; color:inherit; text-decoration:none; background:rgba(255,255,255,.08); backdrop-filter:blur(9px); transition:transform .3s cubic-bezier(.2,.9,.25,1), background .3s; }
+    .cine-stat:hover { color:inherit; transform:translateY(-5px); background:rgba(255,255,255,.16); }
+    .cine-stat strong { display:block; font-size:1.38rem; direction:ltr; text-align:right; }
+    .cine-stat span { display:block; margin-top:3px; font-size:.76rem; opacity:.76; }
+    .cine-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:24px; }
+    .cine-button { position:relative; overflow:hidden; display:inline-flex; align-items:center; justify-content:center; min-height:45px; padding:10px 18px; border:1px solid rgba(255,255,255,.35); border-radius:999px; cursor:pointer; color:#fff; font:inherit; font-weight:800; text-decoration:none; background:rgba(1,8,18,.25); transition:transform .25s cubic-bezier(.2,.9,.25,1), box-shadow .25s, background .25s; }
+    .cine-button:hover { color:#fff; transform:translateY(-3px) scale(1.02); box-shadow:0 13px 28px rgba(0,0,0,.23); background:rgba(255,255,255,.19); }
+    .cine-button.primary { border-color:transparent; background:linear-gradient(135deg, #38bdf8, #6366f1 55%, #d946ef); }
+    .cine-ripple { position:absolute; width:10px; height:10px; border-radius:50%; pointer-events:none; background:rgba(255,255,255,.55); transform:translate(-50%,-50%) scale(0); animation:cineRipple .7s ease-out forwards; }
+    .cine-section { margin-top:24px; }
+    .cine-tabs { position:sticky; top:10px; z-index:10; display:flex; gap:7px; width:max-content; max-width:100%; padding:7px; overflow:auto; border:1px solid var(--border-color); border-radius:18px; background:color-mix(in srgb, var(--card-bg) 85%, transparent); backdrop-filter:blur(16px); box-shadow:0 12px 28px rgba(2,6,23,.08); }
+    .cine-tab { flex:0 0 auto; padding:11px 17px; border:0; border-radius:12px; cursor:pointer; color:var(--text-secondary); background:transparent; font:inherit; font-weight:800; transition:color .25s, background .25s, transform .25s; }
+    .cine-tab.is-active { color:#fff; background:linear-gradient(135deg, #2563eb, #7c3aed); box-shadow:0 8px 16px rgba(79,70,229,.25); }
+    .cine-panel { display:none; margin-top:20px; }
+    .cine-panel.is-active { display:block; animation:cinePanelIn .48s cubic-bezier(.2,.9,.25,1) both; }
+    .cine-panel { position:relative; padding-right:27px; }
+    .cine-panel::before { content:""; position:absolute; top:10px; bottom:15px; right:8px; width:1px; background:linear-gradient(to bottom, transparent, color-mix(in srgb, var(--primary-color) 60%, transparent), transparent); }
+    .cine-panel .post-card { position:relative; isolation:isolate; overflow:hidden; margin-bottom:20px; padding:0; border:1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-color)); border-radius:25px; background:linear-gradient(132deg, color-mix(in srgb, var(--card-bg) 94%, #dbeafe), var(--card-bg) 42%, color-mix(in srgb, var(--card-bg) 95%, #ede9fe)); box-shadow:0 15px 34px rgba(2,6,23,.08); transform:translateY(24px); opacity:0; transition:opacity .7s ease, transform .7s cubic-bezier(.2,.9,.25,1), box-shadow .3s, border-color .3s; }
+    .cine-panel .post-card::before { content:""; position:absolute; z-index:-1; inset:-45% 45% auto -30%; height:170%; background:radial-gradient(ellipse, color-mix(in srgb, var(--primary-color) 22%, transparent), transparent 62%); transform:rotate(22deg); transition:transform .7s ease; }
+    .cine-panel .post-card::after { content:""; position:absolute; top:28px; right:-25px; width:13px; height:13px; border:3px solid var(--primary-color); border-radius:50%; background:var(--card-bg); box-shadow:0 0 0 6px color-mix(in srgb, var(--primary-color) 14%, transparent), 0 0 18px color-mix(in srgb, var(--primary-color) 65%, transparent); }
+    .cine-panel .post-card.cine-revealed { transform:translateY(0); opacity:1; }
+    .cine-panel .post-card:hover { border-color:color-mix(in srgb, var(--primary-color) 52%, var(--border-color)); box-shadow:0 25px 52px rgba(2,6,23,.15); transform:translateY(-5px); }
+    .cine-panel .post-card:hover::before { transform:rotate(22deg) translateX(35%); }
+    .cine-panel .post-header { position:relative; display:flex; align-items:center; gap:12px; padding:18px 19px 14px; border-bottom:1px solid color-mix(in srgb, var(--border-color) 75%, transparent); background:linear-gradient(90deg, rgba(255,255,255,.24), transparent); }
+    .cine-panel .post-avatar { width:45px; height:45px; flex:0 0 auto; padding:2px; border:1px solid color-mix(in srgb, var(--primary-color) 65%, #fff); border-radius:16px; object-fit:cover; box-shadow:0 7px 15px rgba(2,6,23,.13); }
+    .cine-panel .post-info { min-width:0; } .cine-panel .post-info h4 { margin:0!important; font-size:.96rem; } .cine-panel .post-info h4 a { color:var(--text-main)!important; font-weight:900; } .cine-panel .post-info small { display:inline-flex; align-items:center; gap:4px; margin-top:4px; font-size:.72rem; color:var(--text-secondary); }
+    .cine-panel .post-content { margin:0; padding:19px 20px 14px; font-size:.96rem; line-height:2.05; color:var(--text-main); }
+    .cine-panel .post-media-container { width:calc(100% - 30px); max-width:calc(100% - 30px); margin:0 15px 12px!important; overflow:hidden; border:1px solid color-mix(in srgb, var(--primary-color) 18%, var(--border-color)); border-radius:19px; background:#07111f; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08); }
+    .cine-panel .post-media-container, .cine-panel .media-carousel, .cine-panel .media-item { min-width:0; }
+    .cine-panel .media-carousel { width:100%; max-width:100%; }
+    .cine-panel .media-item { width:100%; max-width:100%; overflow:hidden; }
+    .cine-panel .post-media-container img, .cine-panel .post-media-container video { display:block; width:100%; max-width:100%; height:auto; max-height:min(62svh, 520px); object-fit:contain; border-radius:0!important; transition:transform .7s cubic-bezier(.2,.9,.25,1); }
+    .cine-panel .post-media-container audio { display:block; width:100%; max-width:100%; min-width:0; }
+    .cine-panel .post-card:hover .post-media-container img { transform:scale(1.018); }
+    .cine-panel .post-actions { display:flex; align-items:center; justify-content:center; gap:7px; margin:4px 15px 15px; padding:9px; border:1px solid color-mix(in srgb, var(--border-color) 80%, transparent); border-radius:17px; background:rgba(255,255,255,.18); }
+    .cine-panel .action-btn { min-height:37px; display:inline-flex; align-items:center; justify-content:center; gap:5px; padding:7px 10px; border-radius:12px; color:var(--text-secondary); text-decoration:none; background:transparent; transition:transform .22s, color .22s, background .22s; } .cine-panel .action-btn:hover { color:var(--primary-color); background:color-mix(in srgb, var(--primary-color) 11%, transparent); transform:translateY(-2px); }
+    .cine-panel .comments-section { margin:0 15px 15px; padding:13px; border:1px solid color-mix(in srgb, var(--border-color) 86%, transparent); border-radius:17px; background:rgba(255,255,255,.13); } .cine-panel .comments-section h4 { margin:0 0 9px; font-size:.86rem; } .cine-panel .comments-list { border-radius:12px!important; }
+    .cine-pagination { display:flex; align-items:center; justify-content:center; gap:10px; margin:28px 0 8px; }
+    .cine-pagination a, .cine-pagination span { min-width:42px; min-height:42px; display:inline-flex; align-items:center; justify-content:center; padding:8px 13px; border:1px solid var(--border-color); border-radius:14px; color:var(--text-main); font-size:.84rem; font-weight:800; text-decoration:none; background:var(--card-bg); transition:transform .22s, box-shadow .22s, background .22s; }
+    .cine-pagination a:hover { color:#fff; background:linear-gradient(135deg, #2563eb, #7c3aed); box-shadow:0 10px 20px rgba(79,70,229,.24); transform:translateY(-3px); }
+    .cine-pagination .cine-page-current { color:var(--text-secondary); border-style:dashed; }
+    .cine-empty { padding:46px 20px; border:1px dashed var(--border-color); border-radius:24px; text-align:center; color:var(--text-secondary); background:var(--card-bg); }
+    .cine-edit { margin-top:24px; padding:clamp(18px, 4vw, 30px); border-radius:26px; background:var(--card-bg); box-shadow:0 14px 32px rgba(2,6,23,.08); }
+    .cine-edit h2 { margin:0 0 20px; font-size:1.15rem; }
+    .cine-edit p { margin:0 0 14px; }
+    .cine-edit input, .cine-edit select, .cine-edit textarea { width:100%; padding:11px 13px; border:1px solid var(--input-border); border-radius:13px; color:var(--text-main); background:var(--input-bg); font:inherit; }
+    .cine-edit label { display:block; margin-bottom:6px; color:var(--text-secondary); font-size:.88rem; }
+    @keyframes cineOrbit { to { transform:rotate(360deg); } }
+    @keyframes cineBlink { 50% { opacity:.2; } }
+    @keyframes cineLightSweep { from { transform:rotate(12deg) translateX(-18%); opacity:.12; } to { transform:rotate(32deg) translateX(18%); opacity:.42; } }
+    @keyframes cineWalk { 0%,100% { translate:0 0; } 50% { translate:0 -8px; } }
+    @keyframes cineArmLeft { to { transform:rotate(30deg); } } @keyframes cineArmRight { to { transform:rotate(-30deg); } } @keyframes cineLegLeft { to { transform:rotate(-18deg); } } @keyframes cineLegRight { to { transform:rotate(18deg); } }
+    @keyframes cinePulse { 70% { box-shadow:0 0 0 10px rgba(74,222,128,0); } 100% { box-shadow:0 0 0 0 rgba(74,222,128,0); } }
+    @keyframes cineMorph { 0%,100% { border-radius:31% 69% 63% 37% / 34% 31% 69% 66%; } 50% { border-radius:66% 34% 33% 67% / 55% 64% 36% 45%; } }
+    @keyframes cineRipple { to { transform:translate(-50%,-50%) scale(26); opacity:0; } }
+    @keyframes cinePanelIn { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @media (max-width:600px) { .cine-profile { width:min(100% - 16px, 1120px); margin-top:10px; } .cine-hero { min-height:490px; border-radius:25px; padding:25px 20px; } .cine-identity { align-items:flex-start; gap:16px; } .cine-avatar-frame { width:94px; } .cine-metrics { grid-template-columns:1fr 1fr; width:100%; } .cine-stat { padding:13px; } .cine-actions { margin-top:20px; } .cine-button { flex:1 1 140px; } .cine-tabs { top:6px; width:100%; } .cine-tab { flex:1 0 auto; padding-inline:13px; } .cine-crew { left:-12%; bottom:5%; width:60%; opacity:.38; } .cine-timecode { left:18px; top:18px; } }
+    @media (max-width:600px) { .cine-panel { padding-right:18px; } .cine-panel::before { right:5px; } .cine-panel .post-card { border-radius:20px; } .cine-panel .post-card::after { right:-18px; width:10px; height:10px; } .cine-panel .post-header { padding:15px 14px 11px; } .cine-panel .post-content { padding:15px 14px 12px; } .cine-panel .post-media-container { width:calc(100% - 20px); max-width:calc(100% - 20px); margin-inline:10px!important; } .cine-panel .post-media-container img, .cine-panel .post-media-container video { max-height:58svh; } .cine-panel .post-actions, .cine-panel .comments-section { margin-inline:10px; } }
+    @media (prefers-reduced-motion:reduce) { .cine-profile *, .cine-profile *::before, .cine-profile *::after { animation:none!important; transition:none!important; } .cine-panel .post-card { transform:none; opacity:1; } }
+</style>
+
+<main class="cine-profile" id="cinematic-profile">
+    <section class="cine-hero" aria-labelledby="profile-name">
+        <div class="cine-timecode" aria-hidden="true">00:{{ profile.user.id|stringformat:'04d' }}:24</div>
+        <div class="cine-spotlight" aria-hidden="true"></div>
+        <div class="cine-crew" aria-hidden="true">
+            <div class="cine-stick">
+                <svg viewBox="0 0 90 205"><circle cx="45" cy="30" r="18"/><path d="M45 48 L45 123"/><path class="arm-left" d="M44 72 L13 100"/><path class="arm-right" d="M46 72 L77 43"/><path class="leg-left" d="M45 122 L19 183"/><path class="leg-right" d="M45 122 L74 178"/></svg>
+            </div>
+            <div class="cine-stick second">
+                <svg viewBox="0 0 90 205"><circle cx="45" cy="30" r="18"/><path d="M45 48 L45 123"/><path class="arm-left" d="M44 72 L13 100"/><path class="arm-right" d="M46 72 L77 43"/><path class="leg-left" d="M45 122 L19 183"/><path class="leg-right" d="M45 122 L74 178"/></svg>
+            </div>
+            <div class="cine-stick third">
+                <svg viewBox="0 0 90 205"><circle cx="45" cy="30" r="18"/><path d="M45 48 L45 123"/><path class="arm-left" d="M44 72 L13 100"/><path class="arm-right" d="M46 72 L77 43"/><path class="leg-left" d="M45 122 L19 183"/><path class="leg-right" d="M45 122 L74 178"/></svg>
+            </div>
+        </div>
+        <div class="cine-identity">
+            <div class="cine-avatar-frame"><img loading="lazy" decoding="async" src="{{ avatar_url }}" alt="تصویر {{ profile.user.username }}"></div>
+            <div>
+                <h1 id="profile-name">{{ profile.user.username }}{% if profile.selected_tag %}<span class="cine-tag" style="background:{{ profile.selected_tag.background_color }}; color:{{ profile.selected_tag.color }}">{{ profile.selected_tag.icon }} {{ profile.selected_tag.name }}</span>{% endif %}</h1>
+                <div class="cine-handle" aria-label="نام کاربری">{{ profile.user.username }}</div>
+            </div>
+        </div>
+        {% if profile.bio %}<p class="cine-bio">{{ profile.bio }}</p>{% endif %}
+        {% if profile.birth_date %}<div class="cine-dob"><span class="cine-dob-label">متولد</span><span class="cine-dob-date">{{ profile.birth_date|date:"Y/m/d" }}</span></div>{% endif %}
+        <div class="cine-metrics" aria-label="آمار پروفایل">
+            <a class="cine-stat" href="{% url 'followers_list' profile_user.username %}"><strong data-count="{{ followers_count }}">0</strong><span>دنبال‌کننده</span></a>
+            <a class="cine-stat" href="{% url 'following_list' profile_user.username %}"><strong data-count="{{ following_count }}">0</strong><span>دنبال‌شده</span></a>
+        </div>
+        {% if user != profile_user %}
+        <div class="cine-actions">
+            <button id="follow-btn" class="cine-button primary {% if is_following %}following{% else %}not-following{% endif %}" type="button" onclick="toggleFollow('{{ profile_user.username }}')">{% if is_following %}✓ دنبال می‌کنید{% else %}+ دنبال کردن{% endif %}</button>
+            <a class="cine-button" href="{% url 'start_private_chat' %}?username={{ profile_user.username|urlencode }}">گفت‌وگو با کاربر</a>
+        </div>
+        {% endif %}
+    </section>
+
+    {% if form %}
+    <section class="cine-edit" data-motion>
+        <h2>شخصی‌سازی پروفایل</h2>
+        <form method="post" enctype="multipart/form-data">{% csrf_token %}{{ form.as_p }}<button class="cine-button primary" type="submit">ذخیره تغییرات</button></form>
+    </section>
+    {% endif %}
+
+    <section class="cine-section" aria-label="محتوای پروفایل">
+        <div class="cine-tabs" role="tablist">
+            <button class="cine-tab is-active" type="button" role="tab" aria-selected="true" aria-controls="section-posts" data-tab="posts">پست‌ها</button>
+            <button class="cine-tab" type="button" role="tab" aria-selected="false" aria-controls="section-replies" data-tab="replies">پاسخ‌های دریافتی</button>
+        </div>
+        <div id="section-posts" class="cine-panel is-active" role="tabpanel">
+            {% for post in posts %}{% include 'post_card.html' with post=post %}{% empty %}<div class="cine-empty">هنوز پستی در این قاب منتشر نشده است.</div>{% endfor %}
+            {% if posts_page.paginator.num_pages > 1 %}
+            <nav class="cine-pagination" aria-label="صفحه‌بندی پست‌ها">
+                {% if posts_page.has_previous %}<a href="?page={{ posts_page.previous_page_number }}" aria-label="پست‌های جدیدتر">→ جدیدتر</a>{% endif %}
+                <span class="cine-page-current">{{ posts_page.number }} از {{ posts_page.paginator.num_pages }}</span>
+                {% if posts_page.has_next %}<a href="?page={{ posts_page.next_page_number }}" aria-label="پست‌های قدیمی‌تر">قدیمی‌تر ←</a>{% endif %}
+            </nav>
+            {% endif %}
+        </div>
+        <div id="section-replies" class="cine-panel" role="tabpanel">
+            {% for reply in post_replies %}{% include 'post_card.html' with post=reply %}{% empty %}<div class="cine-empty">هنوز پاسخی برای پست‌های این کاربر ثبت نشده است.</div>{% endfor %}
+        </div>
+    </section>
+</main>
+
+<script>
+(() => {
+    const root = document.getElementById('cinematic-profile');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reveal = panel => panel.querySelectorAll('.post-card').forEach((card, index) => setTimeout(() => card.classList.add('cine-revealed'), reduce ? 0 : index * 65));
+    reveal(document.getElementById('section-posts'));
+    document.querySelectorAll('.cine-tab').forEach(tab => tab.addEventListener('click', () => {
+        document.querySelectorAll('.cine-tab').forEach(item => { item.classList.toggle('is-active', item === tab); item.setAttribute('aria-selected', item === tab); });
+        document.querySelectorAll('.cine-panel').forEach(panel => panel.classList.toggle('is-active', panel.id === `section-${tab.dataset.tab}`));
+        reveal(document.getElementById(`section-${tab.dataset.tab}`));
+    }));
+    document.querySelectorAll('.cine-button').forEach(button => button.addEventListener('pointerdown', event => {
+        const ripple = document.createElement('span'); ripple.className = 'cine-ripple';
+        const rect = button.getBoundingClientRect(); ripple.style.left = `${event.clientX - rect.left}px`; ripple.style.top = `${event.clientY - rect.top}px`;
+        button.appendChild(ripple); ripple.addEventListener('animationend', () => ripple.remove());
+    }));
+    document.querySelectorAll('[data-count]').forEach(el => {
+        const target = Number(el.dataset.count || 0); if (reduce) { el.textContent = target; return; }
+        const start = performance.now(), duration = 750;
+        const tick = now => { const progress = Math.min((now - start) / duration, 1); el.textContent = Math.round(target * (1 - Math.pow(1-progress, 3))).toLocaleString('fa-IR'); if (progress < 1) requestAnimationFrame(tick); };
+        requestAnimationFrame(tick);
+    });
+    if (!reduce && root) root.querySelector('.cine-hero').addEventListener('pointermove', event => {
+        const hero = event.currentTarget, rect = hero.getBoundingClientRect(); const x = ((event.clientX - rect.left) / rect.width - .5) * 7, y = ((event.clientY - rect.top) / rect.height - .5) * 7;
+        hero.style.setProperty('--pointer-x', `${x}px`); hero.style.setProperty('--pointer-y', `${y}px`); hero.querySelector('.cine-identity').style.transform = `translate(${x}px, ${y}px)`;
+    });
+    if (root) root.querySelector('.cine-hero').addEventListener('pointerleave', event => event.currentTarget.querySelector('.cine-identity').style.transform = 'translate(0,0)');
+})();
+
+function getCookie(name) { return document.cookie.split('; ').find(row => row.startsWith(name + '='))?.split('=').slice(1).join('=') || ''; }
+function toggleFollow(username) {
+    const button = document.getElementById('follow-btn'); if (!button) return;
+    const following = button.classList.contains('following');
+    fetch(following ? `/unfollow/${username}/` : `/follow/${username}/`, { method:'POST', headers:{ 'X-CSRFToken':decodeURIComponent(getCookie('csrftoken')), 'Content-Type':'application/json' } })
+        .then(response => response.json()).then(data => { if (!data.success) return; button.classList.toggle('following', data.action === 'followed'); button.classList.toggle('not-following', data.action !== 'followed'); button.textContent = data.action === 'followed' ? '✓ دنبال می‌کنید' : '+ دنبال کردن'; const stat = document.querySelector('[data-count]'); if (stat) { stat.dataset.count = data.followers_count; stat.textContent = Number(data.followers_count).toLocaleString('fa-IR'); } });
+}
+</script>
+{% endblock %}

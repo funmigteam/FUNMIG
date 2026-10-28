@@ -1,0 +1,36 @@
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="url"],
+input[type="number"],
+input[type="password"],
+input[type="search"],
+input[type="tel"],
+input[type="date"],
+input[type="datetime-local"],
+select,
+.vTextField,
+.vLargeTextField {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+    border-color: #cbd5e1 !important;
+}
+
+textarea::placeholder,
+input::placeholder {
+    color: #64748b !important;
+}
+
+select option {
+    background-color: #ffffff;
+    color: #111827;
+}
+
+.form-row label,
+.aligned label,
+.help,
+p.help,
+ul.errorlist,
+.readonly {
+    color: #1f2937;
+}

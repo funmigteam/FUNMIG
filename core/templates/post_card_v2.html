@@ -1,0 +1,291 @@
+﻿{% load my_filters %}
+<div class="card post-card" id="post-{{ post.id }}" data-id="{{ post.id }}" data-created="{{ post.created_at|date:'U' }}" onmouseenter="trackPostView({{ post.id }})">
+    {% if post.parent %}
+    <div style="background-color: rgba(0,0,0,0.03); padding: 10px; border-radius: 10px; margin-bottom: 15px; border-right: 3px solid var(--primary-color);">
+        <div style="display: flex; margin-left: auto; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 5px;">
+            در پاسخ به <strong>{{ post.parent.author.username }}</strong>:
+        </div>
+        <div style="opacity: 0.7; font-size: 0.9rem;" class="post-content-wrapper">
+            {{ post.parent.content }}
+            {% include 'includes/post_media.html' with post=post.parent %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="post-header">
+        {% if post.author.userprofile.avatar %}
+        <img loading="lazy" decoding="async" src="{{ post.author.userprofile.avatar.url }}" alt="Avatar" class="post-avatar">
+        {% else %}
+        <img loading="lazy" decoding="async" src="/static/default-avatar.png" alt="Avatar" class="post-avatar">
+        {% endif %}
+        <div class="post-info">
+            <h4 style="margin-top: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                <a href="{% url 'profile' post.author.username %}" style="text-decoration: none; color: inherit;">
+                    {{ post.author.username }}
+                    {% if post.author.userprofile.selected_tag %}
+                    <span class="animated-tag" style="
+                        background-color: {{ post.author.userprofile.selected_tag.background_color }};
+                        color: {{ post.author.userprofile.selected_tag.color }};
+                        padding: 2px 8px;
+                        border-radius: 12px;
+                        font-size: 0.7rem;
+                        margin-right: 6px;
+                        display: inline-block;
+                        animation: tagPulse 2s infinite;
+                        font-weight: 500;
+                        white-space: nowrap;
+                        vertical-align: middle;
+                    ">
+                        {% if post.author.userprofile.selected_tag.icon %}{{ post.author.userprofile.selected_tag.icon }}{% endif %}
+                        {{ post.author.userprofile.selected_tag.name }}
+                    </span>
+                    {% endif %}
+                </a>
+                
+                {% if user != post.author and user.is_authenticated %}
+                <button class="follow-btn-small" 
+                        id="follow-btn-{{ post.author.username }}"
+                        onclick="toggleFollow('{{ post.author.username }}', event)"
+                        style="
+                            padding: 4px 12px;
+                            font-size: 0.7rem;
+                            border-radius: 15px;
+                            border: none;
+                            cursor: pointer;
+                            font-weight: 600;
+                            transition: all 0.3s ease;
+                            {% if post.author|is_followed_by:user %}
+                            background: var(--primary-color);
+                            color: white;
+                            {% else %}
+                            background: transparent;
+                            border: 1.5px solid var(--primary-color);
+                            color: var(--primary-color);
+                            {% endif %}
+                        ">
+                    {% if post.author|is_followed_by:user %}
+                    ✓ دنبال‌شده
+                    {% else %}
+                    + فالو
+                    {% endif %}
+                </button>
+                {% endif %}
+            </h4>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <small>{{ post.created_at|date:"H:i - Y/m/d" }}</small>
+                {% if post.total_views %}
+                <small style="color: var(--text-secondary); display: flex; align-items: center; gap: 3px;">
+                    👁 <span id="view-count-{{ post.id }}">{{ post.total_views }}</span>
+                </small>
+                {% endif %}
+                {% if post.author == user %}
+                <small> • <a href="{% url 'edit_post' post.id %}" style="color:var(--primary-color)">ویرایش</a></small>
+                <small> • <a href="#" class="delete-post-btn" data-id="{{ post.id }}" style="color:red">حذف</a></small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="post-content post-content-wrapper" style="margin: 12px 0; line-height: 1.6;">
+        {{ post.content|format_post_text|safe }}
+    </div>
+    
+    {% include 'includes/post_media.html' with post=post %}
+    
+    
+    <div class="post-reactions" style="display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border-color); flex-wrap: wrap;">
+        {% for emoji, count in post.reactions_breakdown %}
+            <div class="reaction-badge" style="
+                display: inline-flex;
+                align-items: center;
+                gap: 4px;
+                padding: 4px 8px;
+                background: var(--comment-bg);
+                border-radius: 12px;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                border: 1px solid var(--border-color);
+            " title="کلیک برای حذف">
+                <span>{{ emoji }}</span>
+                <span style="font-size: 0.8rem; color: var(--text-secondary);">{{ count }}</span>
+            </div>
+        {% endfor %}
+    </div>
+    
+    
+    <div class="post-stats" style="display: flex; justify-content: space-around; padding: 10px 0; border-bottom: 1px solid var(--border-color); font-size: 0.9rem; color: var(--text-secondary);">
+        {% if post.total_reactions %}
+        <div class="stat-item" style="text-align: center; cursor: pointer;" title="کل واکنش‌ها">
+            <span id="total-reactions-{{ post.id }}">{{ post.total_reactions }}</span> واکنش
+        </div>
+        {% endif %}
+        {% if post.total_comments %}
+        <div class="stat-item" style="text-align: center;">
+            <span>{{ post.total_comments }}</span> نظر
+        </div>
+        {% endif %}
+        {% if post.total_shares %}
+        <div class="stat-item" style="text-align: center;" title="کل اشتراک‌ها">
+            <span id="total-shares-{{ post.id }}">{{ post.total_shares }}</span> اشتراک
+        </div>
+        {% endif %}
+    </div>
+    
+    
+    <div class="post-actions" style="display: flex; justify-content: space-around; padding: 10px 0; border-bottom: 1px solid var(--border-color);">
+        
+        <button class="action-btn" onclick="toggleLike({{ post.id }}, this)" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: none; background: transparent; cursor: pointer; transition: all 0.2s;" title="پسندیدن">
+            <span style="font-size: 1.2rem;">👍</span>
+            <span id="like-count-{{ post.id }}">{{ post.total_likes }}</span>
+        </button>
+        
+        
+        <button class="action-btn" onclick="document.getElementById('comment-form-{{ post.id }}').focus()" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: none; background: transparent; cursor: pointer; transition: all 0.2s;" title="نظر دادن">
+            <span style="font-size: 1.2rem;">💬</span>
+            <span>{{ post.comments.count }}</span>
+        </button>
+        
+        
+        <button class="action-btn share-btn" onclick="toggleShareModal({{ post.id }})" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: none; background: transparent; cursor: pointer; transition: all 0.2s;" title="اشتراک">
+            <span style="font-size: 1.2rem;">🔄</span>
+            <span id="share-count-{{ post.id }}">{{ post.total_shares }}</span>
+        </button>
+        
+        
+        <button class="action-btn save-post-btn" data-post-id="{{ post.id }}" style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: none; background: transparent; cursor: pointer; transition: all 0.2s;" title="ذخیره">
+            <span style="font-size: 1.2rem;">🔖</span>
+        </button>
+        
+        
+        <div class="reaction-picker-container" style="flex: 1; position: relative;">
+            <button class="action-btn" onclick="toggleReactionPicker({{ post.id }})" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 8px; border: none; background: transparent; cursor: pointer; transition: all 0.2s;" title="واکنش">
+                <span style="font-size: 1.2rem;">😊</span>
+            </button>
+            <div class="reaction-picker" id="reaction-picker-{{ post.id }}" style="display: none; position: absolute; bottom: 100%; left: 0; background: white; border: 1px solid var(--border-color); border-radius: 8px; padding: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 10; margin-bottom: 5px;">
+                {% for emoji in "👍,❤️,😂,😢,😮,🔥,😍,💯" %}
+                    <button type="button" onclick="addReaction({{ post.id }}, '{{ emoji }}')" style="background: none; border: none; cursor: pointer; font-size: 1.4rem; padding: 4px; margin: 2px; transition: transform 0.1s;" onmouseover="this.style.transform='scale(1.3)'" onmouseout="this.style.transform='scale(1)'">
+                        {{ emoji }}
+                    </button>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    
+    
+    <div class="comments-section" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border-color);">
+        <div class="comments-list" style="max-height: 250px; overflow-y: auto; margin-bottom: 10px;">
+            {% for comment in post.comments.all %}
+                {% if not comment.parent %}
+            <div class="comment-item" id="comment-{{ comment.id }}" style="padding: 10px; border-bottom: 1px solid var(--border-color); background: var(--comment-bg); margin-bottom: 5px; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <a href="{% url 'profile' comment.author.username %}" style="text-decoration: none; color: var(--primary-color); font-weight: 600;">
+                            {{ comment.author.username }}
+                        </a>
+                        <div class="comment-body" style="margin-top: 4px; color: var(--text-main);">
+                            {{ comment.text }}
+                        </div>
+                        {% if comment.replies.count %}
+                        <small style="display:block; margin-top:5px;">
+                            <a href="#" onclick="toggleReplies({{ comment.id }}); return false;" style="color:var(--primary-color); font-size:0.8rem; text-decoration: none;">
+                                دیدن {{ comment.replies.count }} پاسخ
+                            </a>
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% if comment.author == user %}
+                    <a href="#" class="delete-comment-btn" data-id="{{ comment.id }}" style="color:red; font-size:0.8rem; text-decoration:none; margin-right: 8px;">✕</a>
+                    {% endif %}
+                </div>
+                
+                <div id="replies-list-{{ comment.id }}" style="display: none; margin-top: 10px; margin-right: 15px; border-right: 2px solid var(--primary-color); padding-right: 10px;">
+                    {% for reply in comment.replies.all %}
+                    <div style="padding: 8px; background: rgba(0,0,0,0.02); border-radius: 4px; margin-bottom: 5px;">
+                        <a href="{% url 'profile' reply.author.username %}" style="color: var(--primary-color); font-weight: 600;">{{ reply.author.username }}</a>: {{ reply.text }}
+                        {% if reply.author == user %}
+                        <a href="#" class="delete-comment-btn" data-id="{{ reply.id }}" style="color:red; font-size:0.7rem; text-decoration:none; margin-right: 5px;">✕</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        
+        
+        <form class="comment-form" action="{% url 'add_comment' post.id %}" method="post" style="display: flex; gap: 8px;">
+            {% csrf_token %}
+            <input type="text" id="comment-form-{{ post.id }}" name="text" placeholder="نظر خود را بنویسید..." required style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text-main); direction: rtl;">
+            <button type="submit" class="btn-primary" style="padding: 10px 15px; border-radius: 5px; border: none; background: var(--primary-color); color: white; cursor: pointer; font-weight: 600;">ارسال</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function trackPostView(postId) {
+    
+    if (!window.viewedPostIds) window.viewedPostIds = new Set();
+    if (window.viewedPostIds.has(postId)) return;
+    
+    window.viewedPostIds.add(postId);
+    fetch(`/post/${postId}/view/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById(`view-count-${postId}`).textContent = data.views_count;
+        }
+    });
+}
+
+function toggleLike(postId, btn) {
+    const form = new FormData();
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    fetch(`/post/${postId}/like/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken},
+        body: form
+    }).then(r => r.json()).then(data => {
+        document.getElementById(`like-count-${postId}`).textContent = data.likes_count;
+        btn.style.opacity = data.liked ? '1' : '0.5';
+    });
+}
+
+function addReaction(postId, emoji) {
+    const form = new FormData();
+    form.append('emoji', emoji);
+    const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    fetch(`/post/${postId}/reaction/`, {
+        method: 'POST',
+        headers: {'X-CSRFToken': csrftoken},
+        body: form
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            document.getElementById(`total-reactions-${postId}`).textContent = data.total_reactions;
+            location.reload();
+        }
+    });
+    toggleReactionPicker(postId);
+}
+
+function toggleReactionPicker(postId) {
+    const picker = document.getElementById(`reaction-picker-${postId}`);
+    picker.style.display = picker.style.display === 'none' ? 'grid' : 'none';
+}
+
+function toggleShareModal(postId) {
+    alert('اشتراک پست: به زودی!');
+}
+
+function toggleReplies(commentId) {
+    const repliesList = document.getElementById(`replies-list-${commentId}`);
+    if (repliesList) {
+        repliesList.style.display = repliesList.style.display === 'none' ? 'block' : 'none';
+    }
+}
+</script>

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-wrapper" style="max-width:1050px; margin:0 auto;">
+    <section class="card" style="padding:24px; margin-bottom:18px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:16px; flex-wrap:wrap;">
+            <div>
+                <h1 style="margin:0 0 8px; font-size:1.7rem;">انجمن‌های موضوعی</h1>
+                <p style="margin:0; color:var(--text-secondary);">آدم‌های هم‌علاقه را پیدا کن، عضو شو و گفتگو را شروع کن.</p>
+            </div>
+            <a href="{% url 'community_create' %}" class="btn-primary" style="text-decoration:none; padding:11px 18px;">ساخت انجمن</a>
+        </div>
+        <form method="get" style="display:flex; gap:10px; margin-top:20px;">
+            <input type="search" name="q" value="{{ query }}" placeholder="جست‌وجوی انجمن..."
+                   style="flex:1; min-width:0; padding:12px; border:1px solid var(--border-color); border-radius:12px; background:var(--input-bg); color:var(--text-main);">
+            <button class="btn-primary" type="submit">جست‌وجو</button>
+        </form>
+    </section>
+
+    <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); gap:16px;">
+        {% for community in communities %}
+        <article class="card" style="overflow:hidden; padding:0;">
+            <div style="height:90px; background:{{ community.color }};">
+                {% if community.cover %}
+                <img loading="lazy" decoding="async" src="{{ community.cover.url }}" alt="{{ community.name }}" style="width:100%; height:100%; object-fit:cover;">
+                {% endif %}
+            </div>
+            <div style="padding:18px;">
+                <a href="{% url 'community_detail' community.slug %}" style="color:inherit; text-decoration:none;">
+                    <h2 style="font-size:1.2rem; margin:0 0 8px;">{{ community.name }}</h2>
+                </a>
+                <p style="color:var(--text-secondary); min-height:48px; margin:0 0 14px;">{{ community.description|truncatechars:120 }}</p>
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                    <small style="color:var(--text-secondary);">{{ community.member_count }} عضو · {{ community.posts_count }} پست</small>
+                    {% if community.id in joined_ids %}
+                    <a href="{% url 'community_detail' community.slug %}" style="color:{{ community.color }}; font-weight:800; text-decoration:none;">مشاهده</a>
+                    {% else %}
+                    <form method="post" action="{% url 'community_join' community.slug %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-primary" style="padding:7px 13px;">عضویت</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </article>
+        {% empty %}
+        <div class="card" style="grid-column:1/-1; padding:35px; text-align:center; color:var(--text-secondary);">
+            انجمنی پیدا نشد. اولین انجمن را بساز.
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

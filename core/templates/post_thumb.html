@@ -1,0 +1,16 @@
+{% load my_filters %}
+<a href="{% url 'post_detail' post.id %}" class="insta-thumb post-card" id="post-{{ post.id }}" data-id="{{ post.id }}" data-created="{{ post.created_at|date:'U' }}" title="{{ post.content|truncatechars:80 }}">
+    {% with media_list=post.active_media %}
+        {% if media_list.exists %}
+            {% with first=media_list.0 %}
+                {% if first.media_type == 'image' %}
+                    <img src="{{ first.file.url }}" alt="Post {{ post.id }}" loading="lazy">
+                {% else %}
+                    <div class="insta-noimage">{{ post.content|truncatechars:100 }}</div>
+                {% endif %}
+            {% endwith %}
+        {% else %}
+            <div class="insta-noimage">{{ post.content|truncatechars:100 }}</div>
+        {% endif %}
+    {% endwith %}
+</a>

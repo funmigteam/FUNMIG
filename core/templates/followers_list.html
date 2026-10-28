@@ -1,0 +1,142 @@
+﻿{% extends 'base.html' %}
+{% load my_filters %}
+{% block content %}
+
+<div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+        <a href="{% url 'profile' profile_user.username %}" style="text-decoration: none; color: var(--primary-color);">
+            ← بازگشت به پروفایل
+        </a>
+        <h2>
+            {% if type == 'followers' %}
+            دنبال‌کنندگان
+            {% else %}
+            افرادی که دنبال می‌کند
+            {% endif %}
+        </h2>
+    </div>
+
+    <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <a href="{% url 'followers_list' profile_user.username %}" 
+           class="btn {% if type == 'followers' %}btn-primary{% else %}btn-secondary{% endif %}">
+            دنبال‌کننده‌ها ({{ followers_count|default:profile_user.followers.count }})
+        </a>
+        <a href="{% url 'following_list' profile_user.username %}" 
+           class="btn {% if type == 'following' %}btn-primary{% else %}btn-secondary{% endif %}">
+            دنبال شده‌ها ({{ following_count|default:profile_user.following.count }})
+        </a>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+        {% if type == 'followers' %}
+            {% for follow in page_obj %}
+                {% with follow.follower as follower_user %}
+                <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card-bg); border-radius: 10px;">
+                    <a href="{% url 'profile' follower_user.username %}">
+                        {% if follower_user.userprofile.avatar %}
+                        <img src="{{ follower_user.userprofile.avatar.url }}" 
+                             style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                        <img src="/static/default-avatar.png" 
+                             style="width: 50px; height: 50px; border-radius: 50%;">
+                        {% endif %}
+                    </a>
+                    <div style="flex: 1;">
+                        <a href="{% url 'profile' follower_user.username %}" 
+                           style="text-decoration: none; color: var(--text-main); font-weight: bold;">
+                            {{ follower_user.username }}
+                        </a>
+                        {% if follower_user.userprofile.bio %}
+                        <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">
+                            {{ follower_user.userprofile.bio|truncatewords:15 }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% if request.user != follower_user %}
+                    {% with is_following=follower_user|is_followed_by:request.user %}
+                    <button onclick="toggleFollow('{{ follower_user.username }}')" 
+                            class="follow-btn {% if is_following %}following{% else %}not-following{% endif %}"
+                            style="padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer;">
+                        {% if is_following %}✓ دنبال می‌کنید{% else %}+ دنبال کردن{% endif %}
+                    </button>
+                    {% endwith %}
+                    {% endif %}
+                </div>
+                {% endwith %}
+            {% empty %}
+            <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                {% if type == 'followers' %}
+                هنوز کسی این کاربر را دنبال نکرده است
+                {% else %}
+                این کاربر هنوز کسی را دنبال نکرده است
+                {% endif %}
+            </p>
+            {% endfor %}
+        {% else %}
+            {% for follow in page_obj %}
+                {% with follow.following as following_user %}
+                <div style="display: flex; align-items: center; gap: 15px; padding: 15px; background: var(--card-bg); border-radius: 10px;">
+                    <a href="{% url 'profile' following_user.username %}">
+                        {% if following_user.userprofile.avatar %}
+                        <img src="{{ following_user.userprofile.avatar.url }}" 
+                             style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                        {% else %}
+                        <img src="/static/default-avatar.png" 
+                             style="width: 50px; height: 50px; border-radius: 50%;">
+                        {% endif %}
+                    </a>
+                    <div style="flex: 1;">
+                        <a href="{% url 'profile' following_user.username %}" 
+                           style="text-decoration: none; color: var(--text-main); font-weight: bold;">
+                            {{ following_user.username }}
+                        </a>
+                        {% if following_user.userprofile.bio %}
+                        <p style="margin: 5px 0 0; font-size: 0.85rem; color: var(--text-secondary);">
+                            {{ following_user.userprofile.bio|truncatewords:15 }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% if request.user != following_user %}
+                    {% with is_following=following_user|is_followed_by:request.user %}
+                    <button onclick="toggleFollow('{{ following_user.username }}')" 
+                            class="follow-btn {% if is_following %}following{% else %}not-following{% endif %}"
+                            style="padding: 8px 20px; border-radius: 20px; border: none; cursor: pointer;">
+                        {% if is_following %}✓ دنبال می‌کنید{% else %}+ دنبال کردن{% endif %}
+                    </button>
+                    {% endwith %}
+                    {% endif %}
+                </div>
+                {% endwith %}
+            {% empty %}
+            <p style="text-align: center; color: var(--text-secondary); padding: 40px;">
+                {% if type == 'followers' %}
+                هنوز کسی این کاربر را دنبال نکرده است
+                {% else %}
+                این کاربر هنوز کسی را دنبال نکرده است
+                {% endif %}
+            </p>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    
+    {% if page_obj.has_other_pages %}
+    <div style="display: flex; justify-content: center; gap: 10px; margin-top: 30px;">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}" 
+           class="btn btn-secondary">قبلی</a>
+        {% endif %}
+        
+        <span style="padding: 8px 15px;">
+            صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}
+        </span>
+        
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}" 
+           class="btn btn-secondary">بعدی</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

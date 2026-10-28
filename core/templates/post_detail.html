@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load my_filters %}
+{% block content %}
+<div class="instagram-layout">
+    <section class="feed-hero card">
+        <div class="feed-hero-copy">
+            <h1>پست</h1>
+            <p>نمایش کامل پست و نظرات آن به سبک اینستاگرام.</p>
+        </div>
+        <div class="feed-actions">
+            <a href="{% url 'home' %}" class="btn-secondary">بازگشت به خانه</a>
+        </div>
+    </section>
+
+    <div class="main-grid">
+        <section class="feed-column">
+            <div class="insta-post card">
+                <header class="insta-post-header">
+                    <div class="insta-user">
+                        <a href="{% url 'profile' post.author.username %}" class="insta-avatar-link">
+                            {% if post.author.userprofile.avatar %}
+                                <img loading="lazy" decoding="async" src="{{ post.author.userprofile.avatar.url }}" alt="avatar" class="insta-avatar">
+                            {% else %}
+                                <img loading="lazy" decoding="async" src="/static/default-avatar.png" alt="avatar" class="insta-avatar">
+                            {% endif %}
+                        </a>
+                        <div class="insta-user-meta">
+                            <a href="{% url 'profile' post.author.username %}" class="insta-username">{{ post.author.username }}</a>
+                            <div class="insta-location">{{ post.created_at|date:"Y/m/d H:i" }}</div>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="insta-media-wrap">
+                    {% include 'includes/post_media.html' with post=post %}
+                </div>
+
+                <div class="insta-actions">
+                    <div class="left-actions">
+                        <form class="like-form" action="{% url 'like_post' post.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="action-btn like-btn {% if user in post.like_set.all %}liked{% endif %}">❤</button>
+                        </form>
+                        <button class="action-btn">💬</button>
+                        <button class="action-btn">✈️</button>
+                    </div>
+                    <div class="right-actions">
+                        <button class="action-btn">🔖</button>
+                    </div>
+                </div>
+
+                <div class="insta-caption">
+                    <strong>{{ post.author.username }}</strong> {{ post.content|format_post_text|safe }}
+                </div>
+
+                <div class="insta-comments">
+                    {% for comment in comments %}
+                        <div class="comment-item">
+                            <div class="comment-item-row">
+                                <div>
+                                    <a class="comment-author-link" href="{% url 'profile' comment.author.username %}">{{ comment.author.username }}</a>
+                                    <small class="post-author-time">{{ comment.created_at|date:"H:i - Y/m/d" }}</small>
+                                </div>
+                            </div>
+                            <div class="comment-text">{{ comment.text }}</div>
+                            {% if comment.replies.all %}
+                                <div class="reply-list">
+                                    {% for reply in comment.replies.all %}
+                                        <div class="reply-item">
+                                            <a class="reply-author-link" href="{% url 'profile' reply.author.username %}">{{ reply.author.username }}</a>
+                                            <span class="reply-text">{{ reply.text }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="empty-card">هنوز نظری ثبت نشده است.</div>
+                    {% endfor %}
+                </div>
+
+                <footer class="insta-footer">
+                    {% if user.is_authenticated %}
+                        <form class="comment-form" action="{% url 'add_comment' post.id %}" method="post">
+                            {% csrf_token %}
+                            <input type="text" name="text" placeholder="نظر خود را بنویسید..." required>
+                            <button type="submit" class="comment-form-submit">ارسال</button>
+                        </form>
+                    {% else %}
+                        <p>برای ارسال نظر باید وارد شوید. <a href="{% url 'login' %}">ورود</a></p>
+                    {% endif %}
+                </footer>
+            </div>
+        </section>
+
+        <aside class="recommend-sidebar card">
+            <h3>پست‌های پیشنهادی</h3>
+            <div class="recommended-list">
+                {% for item in recommended_posts %}
+                    <a class="recommended-item" href="{% url 'post_detail' item.id %}">
+                        <div class="recommended-thumb">
+                            {% if item.author.userprofile.avatar %}
+                                <img loading="lazy" decoding="async" src="{{ item.author.userprofile.avatar.url }}" alt="avatar">
+                            {% else %}
+                                <img loading="lazy" decoding="async" src="/static/default-avatar.png" alt="avatar">
+                            {% endif %}
+                        </div>
+                        <div class="recommended-info">
+                            <strong>{{ item.author.username }}</strong>
+                            <small>{{ item.content|truncatechars:40 }}</small>
+                        </div>
+                    </a>
+                {% empty %}
+                    <div class="empty-card">فعلاً پست پیشنهادی وجود ندارد.</div>
+                {% endfor %}
+            </div>
+        </aside>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div style="font-size: 4rem; margin-bottom: 10px;">🔒</div>
+        <h2>دسترسی ممنوع</h2>
+        <p>شما اجازه دسترسی به این بخش را ندارید.</p>
+        <a href="{% url 'home' %}" class="btn-primary" style="text-decoration:none; display:inline-block; margin-top:10px;">بازگشت به خانه</a>
+    </div>
+</div>
+{% endblock %}

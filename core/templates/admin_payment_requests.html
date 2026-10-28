@@ -1,0 +1,318 @@
+﻿{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<style>
+    .admin-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    .page-title {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #f0f2f5;
+        padding-bottom: 10px;
+    }
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+        overflow: hidden;
+    }
+    .table thead th {
+        background-color: #f8f9fa;
+        color: #6c757d;
+        font-weight: 600;
+        border-bottom: 1px solid #dee2e6;
+        padding: 1rem;
+    }
+    .table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        color: #495057;
+    }
+    .user-avatar {
+        width: 35px;
+        height: 35px;
+        background: #e9ecef;
+        color: #495057;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 0.9rem;
+    }
+    .receipt-preview {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .receipt-preview:hover {
+        transform: scale(1.1);
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .action-buttons .btn {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #adb5bd;
+    }
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+</style>
+<div class="admin-container">
+    <h2 class="page-title">
+        <i class="fas fa-money-check-alt me-2 text-primary"></i>
+        بررسی درخواست‌های پرداخت
+    </h2>
+    {% if requests %}
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;" class="text-center">#</th>
+                        <th>کاربر</th>
+                        <th>پلن</th>
+                        <th class="text-center">مبلغ</th>
+                        <th class="text-center">فیش واریزی</th>
+                        <th class="text-center">وضعیت</th>
+                        <th class="text-center">عملیات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for req in requests %}
+                    <tr>
+                        <td class="text-center text-muted">{{ forloop.counter }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar">
+                                    {{ req.user.username|first|upper }}
+                                </div>
+                                <span class="fw-bold">{{ req.user.username }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if req.plan_type == 'basic' %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary">پایه</span>
+                            {% elif req.plan_type == 'silver' %}
+                                <span class="badge bg-info bg-opacity-10 text-info">نقره‌ای</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning">طلایی</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center fw-bold">{{ req.amount|floatformat:0 }} <small class="text-muted">تومان</small></td>
+                        <td class="text-center">
+                            {% if req.receipt_image %}
+                                <a href="{{ req.receipt_image.url }}" target="_blank" class="d-block">
+                                    <img loading="lazy" decoding="async" src="{{ req.receipt_image.url }}" class="receipt-preview" alt="فیش">
+                                </a>
+                            {% else %}
+                                <span class="text-muted small">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            {% if req.status == 'pending' %}
+                                <span class="badge status-badge bg-warning text-dark">در انتظار</span>
+                            {% elif req.status == 'approved' %}
+                                <span class="badge status-badge bg-success">تایید شده</span>
+                            {% else %}
+                                <span class="badge status-badge bg-danger">رد شده</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center action-buttons">
+                            {% if req.status == 'pending' %}
+                                <div class="d-flex justify-content-center gap-2">
+                                    
+                                    <button class="btn btn-success" onclick="sendAction({{ req.id }}, 'approve', '{{ req.user.username }}', '{% if req.receipt_image %}{{ req.receipt_image.url|escapejs }}{% else %}{% endif %}')" title="تایید">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button class="btn btn-danger" onclick="sendAction({{ req.id }}, 'reject', '{{ req.user.username }}', '{% if req.receipt_image %}{{ req.receipt_image.url|escapejs }}{% else %}{% endif %}')" title="رد">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            {% else %}
+                                <span class="text-muted small">ثبت شد</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-inbox"></i>
+        <h5>درخواستی وجود ندارد</h5>
+        <p>هنوز هیچ درخواست پرداختی ثبت نشده است.</p>
+    </div>
+    {% endif %}
+</div>
+
+
+<div class="modal fade" id="quickActionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTitle">بررسی نهایی</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted mb-3">آیا از صحت فیش واریزی برای کاربر زیر اطمینان دارید؟</p>
+                
+                <div class="d-flex align-items-center justify-content-center mb-3 bg-light p-2 rounded">
+                    <div class="user-avatar me-2">U</div>
+                    <strong id="modalUsername">کاربر</strong>
+                </div>
+                
+                <div class="mb-3">
+                    <img id="modalReceiptImg" src="" alt="فیش بزرگ" class="img-fluid rounded shadow-sm" style="max-height: 200px; max-width: 100%;">
+                </div>
+                
+                <p class="small text-muted">با کلیک روی دکمه‌های زیر، عملیات نهایی انجام می‌شود.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">انصراف</button>
+                <button type="button" class="btn btn-success px-4" id="btnConfirmAction">تایید</button>
+                <button type="button" class="btn btn-danger px-4" id="btnRejectAction">رد درخواست</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentData = {
+    id: null,
+    action: null,
+    username: '',
+    receiptUrl: ''
+};
+
+
+function sendAction(id, action, username, receiptUrl) {
+    currentData = {
+        id: id,
+        action: action,
+        username: username,
+        receiptUrl: receiptUrl
+    };
+
+    
+    document.getElementById('modalUsername').innerText = username;
+    document.getElementById('modalReceiptImg').src = receiptUrl || '/static/default-receipt.png'; 
+    
+    const modalTitle = document.getElementById('modalTitle');
+    const btnConfirm = document.getElementById('btnConfirmAction');
+    const btnReject = document.getElementById('btnRejectAction');
+
+    if (action === 'approve') {
+        modalTitle.innerText = 'تایید پرداخت';
+        btnConfirm.style.display = 'inline-block';
+        btnReject.style.display = 'none';
+    } else {
+        modalTitle.innerText = 'رد پرداخت';
+        btnConfirm.style.display = 'none';
+        btnReject.style.display = 'inline-block';
+    }
+
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickActionModal'));
+    modal.show();
+}
+
+
+function submitFinalAction() {
+    const btn = document.activeElement; 
+    const action = currentData.action;
+    const id = currentData.id;
+
+    if (!id || !action) {
+        alert('خطا: اطلاعات درخواست ناقص است.');
+        return;
+    }
+
+    
+    const originalText = btn.innerText;
+    btn.innerText = '...';
+    btn.disabled = true;
+
+    
+    const formData = new FormData();
+    formData.append('request_id', id);
+    formData.append('action', action);
+    
+    
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (csrfToken) {
+        formData.append('csrfmiddlewaretoken', csrfToken.value);
+    }
+
+    console.log('Sending request:', { id, action }); 
+
+    
+    fetch("{% url 'admin_payment_requests' %}", {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Success:', data);
+        if (data.success) {
+            
+            const modalEl = document.getElementById('quickActionModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            modalInstance.hide();
+            
+            
+            location.reload();
+        } else {
+            alert('خطا: ' + (data.message || 'عملیات ناموفق بود'));
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('خطا در ارتباط با سرور. لطفا کنسول مرورگر را بررسی کنید.');
+        btn.innerText = originalText;
+        btn.disabled = false;
+    });
+}
+
+
+document.getElementById('btnConfirmAction').addEventListener('click', submitFinalAction);
+document.getElementById('btnRejectAction').addEventListener('click', submitFinalAction);
+
+</script>
+{% endblock %}

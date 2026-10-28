@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+        <h2 style="margin: 0;">اعلان‌های چت</h2>
+        
+        <a href="{% url 'clear_notifications' %}" 
+           onclick="return confirm('آیا مطمئن هستید که می‌خواهید تمام اعلان‌ها را پاک کنید؟')" 
+           style="color: red; text-decoration: none; border: 1px solid red; padding: 6px 12px; border-radius: 5px; font-size: 0.9rem; transition: 0.2s;">
+           🗑️ پاک کردن همه
+        </a>
+    </div>
+    
+    <div class="notifications-list">
+        {% for notif in notifications %}
+        <div class="notif-item" style="padding: 15px; border-bottom: 1px solid var(--border-color); {% if not notif.is_read %}background-color: rgba(29, 161, 242, 0.05);{% endif %} transition: background 0.2s;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="flex: 1;">
+                    <strong style="display:block; margin-bottom: 5px;">
+                        <a href="{% url 'chat_room' notif.group.id %}" style="color: var(--text-main); text-decoration: none;">
+                            {{ notif.group.name }}
+                        </a>
+                    </strong>
+                    
+                    <p style="margin: 5px 0; color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">
+                        <span style="color: var(--primary-color); font-weight: bold;">{{ notif.message.author.username }}:</span> 
+                        {{ notif.message.content|truncatewords:8 }}
+                    </p>
+                    
+                    <small style="color: var(--text-secondary); font-size: 0.8rem;">
+                        {{ notif.created_at|timesince }} پیش
+                    </small>
+                </div>
+                
+                {% if not notif.is_read %}
+                <div style="margin-right: 15px;">
+                    <span style="display: inline-block; width: 10px; height: 10px; background-color: red; border-radius: 50%;"></span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+            <p style="font-size: 1.1rem;">اعلان جدیدی ندارید.</p>
+            <small>وقتی کسی در گروه‌ها پیامی بفرستد، اینجا نمایش داده می‌شود.</small>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.notif-item:hover {
+    background-color: var(--comment-bg);
+    cursor: pointer;
+}
+
+.notif-item a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}

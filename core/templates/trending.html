@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-wrapper" style="max-width: 980px; margin: 0 auto;">
+    <div class="card" style="padding:20px; margin-bottom:18px;">
+        <h2 style="font-weight:800; margin-bottom:8px;">ترندها</h2>
+        <p style="color:var(--text-secondary);">هشتگ‌ها و پست‌هایی که بیشترین تعامل را گرفته‌اند.</p>
+    </div>
+
+    <div class="card" style="padding:16px; margin-bottom:18px;">
+        <h3 style="font-weight:800; margin-bottom:12px;">هشتگ‌های محبوب</h3>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            {% for tag in tags %}
+                <a href="{% url 'hashtag_detail' tag.name %}" style="background:rgba(139,92,246,.1); color:var(--primary-color); padding:8px 12px; border-radius:999px; font-weight:700;">#{{ tag.name }} · {{ tag.post_count }}</a>
+            {% empty %}
+                <p style="color:var(--text-secondary);">هنوز هشتگی نیست.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <h3 style="font-weight:800; margin:18px 0 12px;">پست‌های داغ</h3>
+    {% for post in posts %}
+        {% include 'post_card.html' with post=post user=request.user %}
+    {% empty %}
+        <div class="card" style="padding:30px; text-align:center; color:var(--text-secondary);">هنوز پستی برای ترند شدن نیست.</div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% load my_filters %}
+{% block content %}
+
+<div class="card" style="max-width: 900px; margin: 0 auto; padding: 20px;">
+    <h2 style="margin-bottom: 10px;">💾 پست‌های ذخیره‌شده</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 20px;">پست‌هایی که برای خواندن بعدی ذخیره کرده‌اید.</p>
+</div>
+
+<div class="posts-feed" style="max-width: 900px; margin: 0 auto;">
+    {% if saved_posts %}
+        {% for post in saved_posts %}
+            {% include 'post_card.html' with post=post %}
+        {% endfor %}
+    {% else %}
+        <div class="card" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+            شما هنوز پستی ذخیره نکرده‌اید.
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}

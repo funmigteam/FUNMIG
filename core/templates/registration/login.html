@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2>خوش آمدید</h2>
+        <p>برای ادامه وارد حساب کاربری خود شوید</p>
+        
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+            
+            {{ form.non_field_errors }}
+
+            <div class="input-group">
+                <label for="id_username">نام کاربری:</label>
+                <input type="text" name="username" id="id_username" placeholder="نام کاربری" required autofocus>
+                {% if form.username.errors %}
+                    <div class="errorlist">{{ form.username.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="input-group">
+                <label for="id_password">رمز عبور:</label>
+                <input type="password" name="password" id="id_password" placeholder="رمز عبور" required>
+                {% if form.password.errors %}
+                    <div class="errorlist">{{ form.password.errors }}</div>
+                {% endif %}
+            </div>
+
+            <button type="submit">ورود به حساب</button>
+        </form>
+
+        <div class="auth-footer">
+            حساب کاربری ندارید؟ <a href="{% url 'signup' %}">ثبت‌نام کنید</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

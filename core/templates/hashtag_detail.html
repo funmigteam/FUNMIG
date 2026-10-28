@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="main-wrapper" style="max-width: 860px; margin: 0 auto;">
+    <div class="card" style="padding:20px; margin-bottom:18px;">
+        <h2 style="font-weight:800; margin-bottom:8px;">#{{ hashtag.name }}</h2>
+        <p style="color:var(--text-secondary);">{{ hashtag.post_count }} پست</p>
+    </div>
+
+    {% for post in posts %}
+        {% include 'post_card.html' with post=post user=request.user %}
+    {% empty %}
+        <div class="card" style="padding:30px; text-align:center; color:var(--text-secondary);">پستی با این هشتگ پیدا نشد.</div>
+    {% endfor %}
+
+    {% if page_obj.has_other_pages %}
+        <div style="display:flex; justify-content:center; gap:12px; margin:20px 0;">
+            {% if page_obj.has_previous %}<a class="btn-primary" href="?page={{ page_obj.previous_page_number }}">قبلی</a>{% endif %}
+            {% if page_obj.has_next %}<a class="btn-primary" href="?page={{ page_obj.next_page_number }}">بعدی</a>{% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

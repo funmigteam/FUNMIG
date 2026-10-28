@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card" style="flex: 2; min-width: 350px;">
+    
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; gap:10px;">
+        <div>
+            <h2 style="margin: 0;">مای چتس</h2>
+            <p style="margin:4px 0 0; color:var(--text-secondary); font-size:0.95rem;">گروه‌ها و چنل‌های خصوصی و عمومی خود را مدیریت کنید.</p>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <a href="{% url 'create_group' %}?group_type=group&is_private=0" class="btn-primary" style="text-decoration:none;">گروه عمومی</a>
+            <a href="{% url 'create_group' %}?group_type=group&is_private=1" class="btn-primary" style="text-decoration:none;">گروه خصوصی</a>
+            <a href="{% url 'create_group' %}?group_type=channel&is_private=0" class="btn-primary" style="text-decoration:none;">ساخت چنل</a>
+            <a href="{% url 'discover_groups' %}" class="btn-secondary" style="text-decoration:none;">پیدا کردن گروه‌ها/چنل‌ها</a>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 20px;">
+        <form action="{% url 'start_private_chat' %}" method="get" style="display:flex; gap:10px;">
+            <input type="text" name="username" placeholder="جستجوی نام کاربری برای چت خصوصی..." required style="flex:1; padding: 8px; border: 1px solid var(--border-color); border-radius: 5px;">
+            <button type="submit" class="btn-primary" style="padding: 8px 15px;">چت</button>
+        </form>
+        {% if error %}
+            <p style="color: red; margin-top: 5px; font-size: 0.85rem;">{{ error }}</p>
+        {% endif %}
+    </div>
+
+    <h4 style="color: var(--text-secondary); margin-bottom: 10px;">چت‌های خصوصی</h4>
+    <div class="groups-list" style="display:flex; flex-direction:column; gap:12px; margin-bottom: 25px;">
+        {% if private_groups %}
+            {% for group in private_groups %}
+                <a href="{% url 'chat_room' group.id %}" class="group-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border:1px solid var(--border-color); border-radius:14px; text-decoration:none; color:inherit; transition:background 0.15s;">
+                    <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; flex-shrink:0;">
+                        <img loading="lazy" decoding="async" src="{{ group.avatar_url }}" alt="avatar" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                            <strong style="font-size:1rem;">{{ group.display_name }}</strong>
+                            {% if group.unread_count %}
+                                <span style="background:#ff5d5d; color:#fff; padding:4px 9px; border-radius:999px; font-size:0.78rem;">{{ group.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; color:var(--text-secondary); font-size:0.95rem;">
+                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:220px;">{{ group.preview_text }}</span>
+                            {% if group.last_message %}
+                                <span>{{ group.last_message.created_at|date:"H:i" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>شما هنوز چت خصوصی ندارید.</p>
+        {% endif %}
+    </div>
+
+    <h4 style="color: var(--text-secondary); margin-bottom: 10px;">گروه‌ها و چنل‌های شما</h4>
+    <div class="groups-list" style="display:flex; flex-direction:column; gap:12px;">
+        {% if public_groups %}
+            {% for group in public_groups %}
+                <a href="{% url 'chat_room' group.id %}" class="group-card" style="display:flex; align-items:center; gap:12px; padding:14px 16px; border:1px solid var(--border-color); border-radius:14px; color:inherit; text-decoration:none; transition:background 0.15s;">
+                    <div style="width:50px; height:50px; border-radius:50%; overflow:hidden; flex-shrink:0; background:rgba(0,0,0,0.05); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-secondary);">
+                        {{ group.display_name|slice:":1"|upper }}
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                            <strong style="font-size:1rem;">{{ group.display_name }}</strong>
+                            {% if group.unread_count %}
+                                <span style="background:#ff5d5d; color:#fff; padding:4px 9px; border-radius:999px; font-size:0.78rem;">{{ group.unread_count }}</span>
+                            {% endif %}
+                        </div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:4px; color:var(--text-secondary); font-size:0.95rem;">
+                            <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:inline-block; max-width:160px;">{{ group.preview_text }}</span>
+                            <span style="font-size:0.75rem; padding:2px 7px; border-radius:999px; background:rgba(0,0,0,0.05);">{% if group.is_channel %}چنل{% else %}گروه{% endif %}</span>
+                            {% if group.last_message %}
+                                <span>{{ group.last_message.created_at|date:"H:i" }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+            {% endfor %}
+        {% else %}
+            <p>شما هنوز عضو هیچ گروهی نیستید.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,378 @@
+<div class="main-wrapper blog-admin-shell">
+    <div class="blog-editor-card">
+        <div class="editor-header">
+            <div>
+                <h2>{{ page_title|default:'نوشتن مقاله' }}</h2>
+                <p>مقاله را مثل یک صفحه مجله‌ای بسازید: متن، عکس، صوت، نقل‌قول، لینک و رنگ کلمه‌ها.</p>
+            </div>
+            {% if back_slug %}
+                <a href="{% url back_url back_slug %}" class="link-button">{{ back_label }}</a>
+            {% else %}
+                <a href="{% url back_url %}" class="link-button">{{ back_label }}</a>
+            {% endif %}
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="blog-editor-form" id="blog-editor-form">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+            <div class="form-errors">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_title">{{ form.title.label }}</label>
+                    {{ form.title }}
+                    {{ form.title.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_slug">{{ form.slug.label }}</label>
+                    {{ form.slug }}
+                    {{ form.slug.errors }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_description">{{ form.description.label }}</label>
+                {{ form.description }}
+                {{ form.description.errors }}
+            </div>
+
+            <div class="form-group">
+                <label for="id_tags">{{ form.tags.label }}</label>
+                {{ form.tags }}
+                {{ form.tags.errors }}
+            </div>
+
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="id_source">{{ form.source.label }}</label>
+                    {{ form.source }}
+                    {{ form.source.errors }}
+                </div>
+                <div class="form-group">
+                    <label for="id_source_url">{{ form.source_url.label }}</label>
+                    {{ form.source_url }}
+                    {{ form.source_url.errors }}
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="id_image">{{ form.image.label }}</label>
+                {{ form.image }}
+                {{ form.image.errors }}
+                {% if post.image %}
+                <div class="current-cover">
+                    <img loading="lazy" decoding="async" src="{{ post.image.url }}" alt="{{ post.title }}">
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group rich-field">
+                <label for="id_content">{{ form.content.label }}</label>
+                <div class="rich-toolbar" role="toolbar" aria-label="ابزارهای ویرایش مقاله">
+                    <button type="button" data-command="bold" title="بولد">B</button>
+                    <button type="button" data-command="italic" title="ایتالیک">I</button>
+                    <button type="button" data-command="underline" title="زیرخط">U</button>
+                    <button type="button" data-block="h2" title="تیتر بزرگ">H2</button>
+                    <button type="button" data-block="h3" title="تیتر کوچک">H3</button>
+                    <button type="button" data-command="insertUnorderedList" title="لیست">•</button>
+                    <button type="button" data-action="quote" title="باکس نقل‌قول">''</button>
+                    <button type="button" data-action="link" title="لینک">🔗</button>
+                    <label class="color-tool" title="رنگ متن">
+                        <span>A</span>
+                        <input type="color" id="text-color-picker" value="#e11d48">
+                    </label>
+                    <button type="button" data-action="image" title="افزودن عکس">🖼</button>
+                    <button type="button" data-action="audio" title="افزودن صوت">♪</button>
+                </div>
+                <div id="blog-rich-editor" class="blog-rich-editor" contenteditable="true" dir="rtl"></div>
+                {{ form.content }}
+                {{ form.content.errors }}
+                <input type="file" id="blog-image-upload" accept="image/*" hidden>
+                <input type="file" id="blog-audio-upload" accept="audio/*" hidden>
+            </div>
+
+            <div class="btn-wrapper">
+                <button type="submit" class="btn-primary">{{ submit_label }}</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+.blog-admin-shell {
+    max-width: 980px;
+    margin: 0 auto;
+}
+.blog-editor-card {
+    background: #ffffff;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 28px;
+    box-shadow: 0 16px 45px rgba(15, 23, 42, 0.08);
+}
+.editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 26px;
+}
+.editor-header h2 {
+    margin: 0 0 8px;
+    color: #111827;
+}
+.editor-header p {
+    margin: 0;
+    color: #4b5563;
+}
+.link-button {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.blog-editor-form .form-group {
+    margin-bottom: 18px;
+}
+.blog-editor-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: #111827;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+.blog-editor-form input,
+.blog-editor-form textarea,
+.blog-editor-form select {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1rem;
+    resize: vertical;
+    background: #ffffff;
+    color: #111827 !important;
+}
+.blog-editor-form input::placeholder,
+.blog-editor-form textarea::placeholder {
+    color: #6b7280;
+}
+.current-cover img {
+    margin-top: 12px;
+    max-width: 240px;
+    border-radius: 8px;
+}
+.rich-field textarea {
+    display: none;
+}
+.rich-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid #d1d5db;
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    background: #f8fafc;
+}
+.rich-toolbar button,
+.color-tool {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #111827;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 0.9rem;
+}
+.color-tool {
+    position: relative;
+    overflow: hidden;
+}
+.color-tool input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+}
+.blog-rich-editor {
+    min-height: 430px;
+    padding: 24px;
+    border: 1px solid #d1d5db;
+    border-radius: 0 0 8px 8px;
+    background: #ffffff;
+    color: #111827;
+    font-size: 1.08rem;
+    line-height: 2.05;
+    outline: none;
+}
+.blog-rich-editor:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+.blog-rich-editor p {
+    margin: 0 0 18px;
+}
+.blog-rich-editor img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 22px auto;
+    border-radius: 8px;
+}
+.blog-rich-editor audio {
+    width: 100%;
+    margin: 18px 0;
+}
+.blog-rich-editor blockquote,
+.blog-rich-editor .blog-callout {
+    margin: 24px 0;
+    padding: 18px 22px;
+    border-right: 5px solid #0ea5e9;
+    background: #ecfeff;
+    color: #0f172a;
+    border-radius: 8px;
+    font-size: 1.12rem;
+    font-weight: 800;
+}
+.btn-primary {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 13px 28px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 800;
+}
+.form-errors,
+.errorlist {
+    background: #fef2f2;
+    color: #b91c1c;
+    padding: 12px 14px;
+    border-radius: 8px;
+}
+@media (max-width: 768px) {
+    .blog-editor-card {
+        padding: 18px;
+    }
+    .editor-header,
+    .form-grid {
+        display: block;
+    }
+    .link-button {
+        display: inline-block;
+        margin-top: 12px;
+    }
+    .blog-rich-editor {
+        min-height: 340px;
+        padding: 18px;
+    }
+}
+</style>
+
+<script>
+(function() {
+    const form = document.getElementById('blog-editor-form');
+    const editor = document.getElementById('blog-rich-editor');
+    const textarea = document.getElementById('id_content');
+    const imageInput = document.getElementById('blog-image-upload');
+    const audioInput = document.getElementById('blog-audio-upload');
+    const colorPicker = document.getElementById('text-color-picker');
+
+    if (!form || !editor || !textarea) return;
+
+    editor.innerHTML = textarea.value || '<p><br></p>';
+
+    function focusEditor() {
+        editor.focus();
+    }
+
+    function runCommand(command, value = null) {
+        focusEditor();
+        document.execCommand(command, false, value);
+    }
+
+    function insertHtml(html) {
+        focusEditor();
+        document.execCommand('insertHTML', false, html);
+    }
+
+    async function uploadMedia(file) {
+        const data = new FormData();
+        data.append('file', file);
+        const response = await fetch("{% url 'upload_blog_media' %}", {
+            method: 'POST',
+            headers: {'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value},
+            body: data
+        });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+            throw new Error(result.error || 'آپلود انجام نشد.');
+        }
+        return result;
+    }
+
+    function handleFile(input, type) {
+        const file = input.files && input.files[0];
+        if (!file) return;
+        uploadMedia(file).then((result) => {
+            if (type === 'image') {
+                insertHtml(`<figure class="blog-media"><img src="${result.url}" alt=""><figcaption></figcaption></figure><p><br></p>`);
+            } else {
+                insertHtml(`<figure class="blog-audio"><audio controls src="${result.url}"></audio></figure><p><br></p>`);
+            }
+            input.value = '';
+        }).catch((error) => {
+            alert(error.message);
+            input.value = '';
+        });
+    }
+
+    document.querySelectorAll('.rich-toolbar [data-command]').forEach((button) => {
+        button.addEventListener('click', () => runCommand(button.dataset.command));
+    });
+
+    document.querySelectorAll('.rich-toolbar [data-block]').forEach((button) => {
+        button.addEventListener('click', () => runCommand('formatBlock', button.dataset.block));
+    });
+
+    document.querySelector('[data-action="quote"]').addEventListener('click', () => {
+        const selection = window.getSelection().toString() || 'متن کوتاه نقل‌قول را اینجا بنویسید';
+        insertHtml(`<blockquote class="blog-callout">${selection}</blockquote><p><br></p>`);
+    });
+
+    document.querySelector('[data-action="link"]').addEventListener('click', () => {
+        const url = prompt('آدرس لینک را وارد کنید:');
+        if (url) runCommand('createLink', url);
+    });
+
+    document.querySelector('[data-action="image"]').addEventListener('click', () => imageInput.click());
+    document.querySelector('[data-action="audio"]').addEventListener('click', () => audioInput.click());
+    imageInput.addEventListener('change', () => handleFile(imageInput, 'image'));
+    audioInput.addEventListener('change', () => handleFile(audioInput, 'audio'));
+
+    colorPicker.addEventListener('input', () => runCommand('foreColor', colorPicker.value));
+
+    function syncEditor() {
+        textarea.value = editor.innerHTML.trim();
+    }
+
+    editor.addEventListener('input', syncEditor);
+
+    form.addEventListener('submit', () => {
+        syncEditor();
+    });
+})();
+</script>

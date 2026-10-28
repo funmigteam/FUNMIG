@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div style="font-size: 4rem; margin-bottom: 10px;">🤷‍♂️</div>
+        <h2>صفحه پیدا نشد!</h2>
+        <p>متاسفانه صفحه‌ای که به دنبال آن بودید وجود ندارد یا حذف شده است.</p>
+        <a href="{% url 'home' %}" class="btn-primary" style="text-decoration:none; display:inline-block; margin-top:10px;">بازگشت به خانه</a>
+    </div>
+</div>
+{% endblock %}

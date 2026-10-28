@@ -1,0 +1,15 @@
+[Unit]
+Description=funmig (daphne) - funmig.com / social.funmig.com
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/srv/funmig/funmig
+EnvironmentFile=/srv/funmig/funmig/.env
+ExecStart=/srv/funmig/funmig/.venv/bin/daphne -b 127.0.0.1 -p 8003 myproject.asgi:application
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

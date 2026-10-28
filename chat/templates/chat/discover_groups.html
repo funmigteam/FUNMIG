@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="margin: 0 auto; max-width: 900px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:20px;">
+        <div>
+            <h2>گروه‌ها و چنل‌های عمومی</h2>
+            <p style="margin:4px 0 0; color:var(--text-secondary);">برای پیوستن روی دکمه‌ی "عضویت" کلیک کنید.</p>
+        </div>
+        <a href="{% url 'chat_list' %}" class="btn-secondary" style="text-decoration:none;">بازگشت به چت‌ها</a>
+    </div>
+
+    {% if available_groups %}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+            {% for group in available_groups %}
+                <div style="border:1px solid var(--border-color); border-radius:16px; padding:18px; background:var(--card-bg, #fff); box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;">
+                        <div>
+                            <h3 style="margin:0 0 6px; font-size:1.05rem;">{{ group.name }}</h3>
+                            <div style="color:var(--text-secondary); font-size:0.9rem;">{{ group.members.count }} عضو</div>
+                        </div>
+                        <span style="font-size:0.8rem; padding:6px 10px; border-radius:999px; background:rgba(51,144,236,0.08); color:var(--tg-primary);">
+                            {% if group.is_channel %}چنل{% else %}گروه عمومی{% endif %}
+                        </span>
+                    </div>
+                    <p style="margin:0 0 14px; color:var(--text-secondary); font-size:0.95rem; line-height:1.5;">{% if group.is_channel %}این چنل فقط برای خواندن است و اعضا نمی‌توانند پیام ارسال کنند مگر اینکه برای نوشتن مجوز داشته باشند.{% else %}به گروه بپیوندید تا گفتگو را شروع کنید.{% endif %}</p>
+                    {% if group.is_joined %}
+                        <a href="{% url 'chat_room' group.id %}?call=1" class="btn-primary" style="display:block; width:100%; text-align:center; text-decoration:none; background:#16a34a; margin-bottom:10px;">☎ کال</a>
+                        <a href="{% url 'chat_room' group.id %}" class="btn-secondary" style="display:block; width:100%; text-align:center; text-decoration:none;">ورود</a>
+                    {% else %}
+                        <form method="post" action="{% url 'join_public_group' group.id %}">
+                            {% csrf_token %}
+                            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                                <button type="submit" class="btn-primary" style="width:100%;">عضویت</button>
+                                <button type="submit" name="call" value="1" class="btn-primary" style="width:100%; background:#16a34a;">☎ عضویت و کال</button>
+                            </div>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>در حال حاضر گروه عمومی یا چنلی وجود ندارد.</p>
+    {% endif %}
+</div>
+{% endblock %}

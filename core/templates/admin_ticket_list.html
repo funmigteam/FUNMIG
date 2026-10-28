@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px; margin-top: 30px;">
+    <h2 style="text-align: center; margin-bottom: 20px; color: var(--text-main);">مدیریت تیکت‌ها</h2>
+    
+    <div class="card" style="background: var(--card-bg); border-radius: 15px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse; text-align: right;">
+            <thead style="background: rgba(0,0,0,0.03);">
+                <tr>
+                    <th style="padding: 15px; color: var(--text-secondary); font-weight: normal;">کاربر</th>
+                    <th style="padding: 15px; color: var(--text-secondary); font-weight: normal;">موضوع</th>
+                    <th style="padding: 15px; color: var(--text-secondary); font-weight: normal;">وضعیت</th>
+                    <th style="padding: 15px; color: var(--text-secondary); font-weight: normal;">تاریخ</th>
+                    <th style="padding: 15px; color: var(--text-secondary); font-weight: normal;">عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                    <td style="padding: 15px;">{{ ticket.user.username }}</td>
+                    <td style="padding: 15px;"><a href="{% url 'admin_ticket_detail' ticket.id %}" style="color: var(--primary-color); text-decoration: none;">{{ ticket.subject }}</a></td>
+                    <td style="padding: 15px;">
+                        {% if ticket.status == 'open' %}
+                            <span style="background: #e6f4ea; color: #1e7e34; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem;">باز</span>
+                        {% else %}
+                            <span style="background: #fbe9eb; color: #bd2130; padding: 4px 8px; border-radius: 12px; font-size: 0.75rem;">بسته</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 15px; font-size: 0.9rem; color: var(--text-secondary);">{{ ticket.created_at|date:"Y/m/d" }}</td>
+                    <td style="padding: 15px;">
+                        <a href="{% url 'admin_ticket_detail' ticket.id %}" style="color: var(--primary-color); text-decoration: none; margin-left: 10px;">مشاهده</a>
+                        <a href="{% url 'delete_ticket' ticket.id %}" style="color: #dc3545; text-decoration: none;">حذف</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

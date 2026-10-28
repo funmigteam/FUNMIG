@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card auth-card" style="margin: 0 auto; max-width: 400px;">
+    <h2>{% if is_channel_form %}ساخت چنل جدید{% else %}ساخت گروه جدید{% endif %}</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.group_type }}
+        {{ form.is_private }}
+        <p>
+            <label for="{{ form.name.id_for_label }}">
+                {% if is_channel_form %}نام چنل{% else %}نام گروه{% endif %}
+            </label>
+            {{ form.name }}
+            {{ form.name.errors }}
+        </p>
+        <button type="submit" class="btn-primary">
+            {% if is_channel_form %}ساخت چنل{% else %}ساخت گروه{% endif %}
+        </button>
+    </form>
+</div>
+{% endblock %}
